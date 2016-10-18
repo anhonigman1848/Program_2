@@ -15,3 +15,5 @@ Use method setPacketSize(int) to set packet size
 Use method makePackets(byte[]) to pass data
 
 Use method nextPacket() to remove next packet in queue
+
+PacketHandlerTest - a simple test to show things work as expected
