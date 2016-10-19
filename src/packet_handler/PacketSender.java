@@ -1,13 +1,23 @@
 package packet_handler;
 
+import java.io.File;
+
+import java.io.FileInputStream;
+
+import java.io.FileOutputStream;
+
 import java.util.concurrent.BlockingQueue;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
+import java.nio.ByteBuffer;
+
+import java.net.DatagramPacket;
+
 public class PacketSender {
 	
 	// store packets in BlockingQueue for Thread support
-	private BlockingQueue<Packet> buffer = new ArrayBlockingQueue<Packet>(10);
+	private BlockingQueue<Packet> buffer = new ArrayBlockingQueue<Packet>(1024);
 	
 	private int packet_size;
 	
@@ -27,6 +37,36 @@ public class PacketSender {
 	  
 	}
 	
+	public byte[] convertFile(File passedFile) {
+	  
+	  FileInputStream input = null;
+	  
+	  File file = passedFile;
+	  
+	  byte[] data = new byte[(int) file.length()];
+	  
+	  try {
+	    
+	    input = new FileInputStream(file);
+	    
+	    input.read(data);
+	    
+	    input.close();
+	    
+	    return(data);
+	    
+	  }
+	  
+	  catch(Exception ex) {
+		  
+		    System.out.println("Error in convertFile: " + ex);
+		    
+		    return(null);
+		  
+	  }
+	  	  
+	}
+	
 	public void makePackets(byte[] data) {
 	  
 	  int seqno = 1;
@@ -42,6 +82,7 @@ public class PacketSender {
 					current_size = data.length - i;
 										
 				}
+				
 				byte[] packet_data = new byte[current_size];
 				
 				System.arraycopy(data, i, packet_data, 0, current_size);
@@ -55,6 +96,11 @@ public class PacketSender {
 				seqno++;
 				
 			}
+			
+			// final Packet with null data to mark end of file
+			Packet last_packet = new Packet(seqno);
+			
+			buffer.put(last_packet);
 			
 		} catch(Exception ex) {
 		  
@@ -88,6 +134,109 @@ public class PacketSender {
 			
 		}
 		
+	}
+	
+	public int getNextPacketSeqno() {
+		
+		try {
+			
+			Packet nextPacket = buffer.peek();
+			
+			if(nextPacket == null) {
+			  
+				return(0);
+			  
+			}
+			
+			return(nextPacket.getSeqno());
+				
+		}
+		
+		catch(Exception ex) {
+			
+			System.out.println("Error in getNextPacketSeqno " + ex);
+			
+			return(0);
+			
+		}
+		
+	}
+	
+	public void receiveAck(Packet newAck) {
+	  
+	  Packet new_ack = newAck;
+	  
+	}
+	
+	public DatagramPacket packetToDGPacket(Packet newPacket) {
+	  
+	  Packet input_p = newPacket;
+	  
+	  byte[] temp = new byte[input_p.getLength()];
+	  
+	  ByteBuffer buf = ByteBuffer.wrap(temp);
+	  
+	  buf.putShort(input_p.getCksum());
+	  
+	  buf.putShort(input_p.getLength());
+	  
+	  buf.putInt(input_p.getAckno());
+	  
+	  if(input_p.getLength() > 8) {
+	    
+	    buf.putInt(input_p.getSeqno());
+	    
+	    buf.put(input_p.getData());
+	    
+	  }
+	  
+	  DatagramPacket output_dg = new DatagramPacket(temp, temp.length);
+	  
+	  return(output_dg);
+	  
+	}
+	
+	public Packet dgpacketToPacket(DatagramPacket dgPacket) {
+	  
+	  DatagramPacket input_dg = dgPacket;
+	  
+	  byte[] temp = input_dg.getData();
+	  
+	  ByteBuffer buf = ByteBuffer.wrap(temp);
+	  
+	  short cksum = buf.getShort();
+	  
+	  // check for corrupted packet
+	  if(cksum > 0) {
+	    
+	    return(null);
+	    
+	  }
+	  
+	  short length = buf.getShort();
+	  
+	  int ackno = buf.getInt();
+	  
+	  if(length == 8) {
+	    
+	    Packet output_p = new Packet(ackno);
+	    
+	    return(output_p);
+
+	  } else {
+	    
+	    int seqno = buf.getInt();
+	    
+	    byte[] data = new byte[buf.remaining()];
+	    
+	    buf.get(data);
+	    
+	    Packet output_p = new Packet(seqno, data);
+	    
+	    return output_p;
+	    
+	  }
+	  
 	}
 	
 }

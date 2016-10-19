@@ -32,7 +32,7 @@ public class Packet {
 	  
 	  cksum = 0;
 	  
-	  length = (short) 8;
+	  length = 8;
 	  
 	  ackno = passedAckno;
 	  
