@@ -13,28 +13,28 @@ public class Packet {
   byte[] data;
   
   // constructor for Data packet
-	public Packet(int passedSeqno, byte[] passedData) {
+	public Packet(int seqno, byte[] data) {
 	  
-	  cksum = 0;
+	  this.cksum = 0;
 	  
-	  seqno = passedSeqno;
+	  this.seqno = seqno;
 	  
-	  ackno = seqno + 1;
+	  this.ackno = seqno + 1;
 
-	  data = passedData;
+	  this.data = data;
 		
-	  length = (short) (12 + data.length);
+	  this.length = (short) (12 + data.length);
 	  
 	}
 
   // constructor for Ack packet
-	public Packet(int passedAckno) {
+	public Packet(int ackno) {
 	  
-	  cksum = 0;
+	  this.cksum = 0;
 	  
-	  length = 8;
+	  this.length = 8;
 	  
-	  ackno = passedAckno;
+	  this.ackno = ackno;
 	  
 	}
 

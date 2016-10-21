@@ -12,7 +12,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import java.nio.ByteBuffer;
 
-import java.net.DatagramPacket;
+import java.net.*;
 
 public class PacketSender {
 	
@@ -98,7 +98,10 @@ public class PacketSender {
 			}
 			
 			// final Packet with null data to mark end of file
-			Packet last_packet = new Packet(seqno);
+			
+			byte[] nodata = new byte[0];
+			
+			Packet last_packet = new Packet(-1, nodata);
 			
 			buffer.put(last_packet);
 			
@@ -162,9 +165,33 @@ public class PacketSender {
 		
 	}
 	
-	public void receiveAck(Packet newAck) {
+	public DatagramPacket packetToDGPacket(Packet newPacket,
+			InetAddress server, int port) {
 	  
-	  Packet new_ack = newAck;
+	  Packet input_p = newPacket;
+	  
+	  byte[] temp = new byte[input_p.getLength()];
+	  
+	  ByteBuffer buf = ByteBuffer.wrap(temp);
+	  
+	  buf.putShort(input_p.getCksum());
+	  
+	  buf.putShort(input_p.getLength());
+	  
+	  buf.putInt(input_p.getAckno());
+	  
+	  if(input_p.getLength() > 8) {
+	    
+	    buf.putInt(input_p.getSeqno());
+	    
+	    buf.put(input_p.getData());
+	    
+	  }
+	  
+	  DatagramPacket output_dg = new DatagramPacket(temp, temp.length,
+			  server, port);
+	  
+	  return(output_dg);
 	  
 	}
 	
