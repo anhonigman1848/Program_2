@@ -44,9 +44,6 @@ public class UDPServer implements Runnable {
 
 		try (DatagramSocket socket = new DatagramSocket(port)) {
 
-			// socket.setSoTimeout(10000); // check every 10 seconds for
-			// shutdown
-
 			while (true) {
 
 				if (isShutDown)
@@ -142,7 +139,7 @@ public class UDPServer implements Runnable {
 
 	}
 
-	public static void main(String[] args) {
+/*	public static void main(String[] args) {
 
 		UDPServer server = new UDPServer();
 
@@ -150,6 +147,6 @@ public class UDPServer implements Runnable {
 
 		t.start();
 
-	}
+	} */
 
 }

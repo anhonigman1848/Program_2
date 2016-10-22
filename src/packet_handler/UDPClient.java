@@ -9,6 +9,12 @@ public class UDPClient {
 	public static void main(String[] args) {
 
 		String hostname = "localhost";
+		
+		UDPServer server = new UDPServer();
+
+		Thread t = new Thread(server);
+
+		t.start();
 
 		if (args.length > 0) hostname = args[0];
 
