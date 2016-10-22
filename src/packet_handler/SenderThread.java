@@ -54,13 +54,18 @@ class SenderThread extends Thread {
 					return;
 
 				Packet next = handler.nextPacket();
-
+				
 				DatagramPacket output = handler.packetToDGPacket(next, server,
 						port);
 
-				System.out.println("Client sending packet no " + next.getSeqno());
+				if (!handler.failureCheck()) {
 
-				socket.send(output);
+					System.out.println("Client sending packet no "
+							+ next.getSeqno());
+
+					socket.send(output);
+
+				}
 
 				try {
 

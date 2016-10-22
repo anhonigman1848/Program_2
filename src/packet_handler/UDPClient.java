@@ -4,13 +4,22 @@ import java.net.*;
 
 public class UDPClient {
 
-	public final static int PORT = 7;
+	private final static int PORT = 7;
+	
+	private static int packet_size = 1024;
+	
+	private static double corruption_prob = 0.25;
+	
+	private static double failure_prob = 0.1;
 	
 	public static void main(String[] args) {
 
 		String hostname = "localhost";
 		
-		UDPServer server = new UDPServer();
+		PacketHandler server_handler = new PacketHandler(
+				packet_size, corruption_prob, failure_prob);
+
+		UDPServer server = new UDPServer(PORT, server_handler);
 
 		Thread t = new Thread(server);
 
@@ -24,15 +33,14 @@ public class UDPClient {
 
 			DatagramSocket socket = new DatagramSocket();
 			
-			PacketHandler handler = new PacketHandler();
+			PacketHandler client_handler = new PacketHandler(
+					packet_size, corruption_prob, failure_prob);
 
-			handler.setPacketSize(1024);
-
-			SenderThread sender = new SenderThread(socket, ia, PORT, handler);
+			SenderThread sender = new SenderThread(socket, ia, PORT, client_handler);
 
 			sender.start();
 
-			Thread receiver = new ReceiverThread(socket, handler);
+			Thread receiver = new ReceiverThread(socket, client_handler);
 
 			receiver.start();
 

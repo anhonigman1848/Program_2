@@ -1,17 +1,11 @@
 package packet_handler;
 
 import java.io.File;
-
 import java.io.FileInputStream;
-
 import java.io.FileOutputStream;
-
 import java.util.concurrent.BlockingQueue;
-
 import java.util.concurrent.ArrayBlockingQueue;
-
 import java.nio.ByteBuffer;
-
 import java.net.*;
 
 public class PacketHandler {
@@ -19,24 +13,30 @@ public class PacketHandler {
 	// store packets in BlockingQueue for Thread support
 	private BlockingQueue<Packet> buffer = new ArrayBlockingQueue<Packet>(1024);
 
-	// store packets to send in Packet array
+	// store sent packets in Packet array
 	private Packet[] window;
 
 	private volatile int lastAckReceived;
 
 	private int packet_size;
+	
+	// probability that cksum of any Packet will be corrupted
+	private double corruption_prob;
+	
+	// probability that a Packet will fail on sending
+	private double failure_prob;
 
-	public PacketHandler() {
+	public PacketHandler(int packet_size, double corruption_prob, double failure_prob) {
+		
+		this.packet_size = packet_size;
+		
+		this.corruption_prob = corruption_prob;
+		
+		this.failure_prob = failure_prob;
 
 		this.window = new Packet[1];
 		
 		this.lastAckReceived = 1;
-
-	}
-
-	public void setPacketSize(int packetSize) {
-
-		this.packet_size = packetSize;
 
 	}
 
@@ -52,10 +52,28 @@ public class PacketHandler {
 
 	}
 
-	public int getLastAckReceived() {
+	public synchronized int getLastAckReceived() {
 
 		return (lastAckReceived);
 
+	}
+	
+	public boolean failureCheck() {
+		
+		if (Math.random() < failure_prob) {
+			
+			System.out.println("Failed to send packet!");
+
+			return(true);
+			
+		}
+		
+		else {
+			
+			return(false);
+			
+		}
+		
 	}
 
 	public byte[] convertFile(File passedFile) {
@@ -144,10 +162,7 @@ public class PacketHandler {
 
 		try {
 
-			// System.out.println("Last ack " + lastAckReceived);
-
-			// System.out.println("Next seq " + getNextPacketSeqno());
-
+			// check whether last Packet sent has been acked
 			if (getNextPacketSeqno() > lastAckReceived) {
 
 				return (window[0]);
@@ -158,7 +173,19 @@ public class PacketHandler {
 
 				Packet nextPacket = buffer.take();
 
-				window[0] = nextPacket;
+				// save "clean" copy of nextPacket in window
+				Packet tempPacket = new Packet(nextPacket.getSeqno(),
+						nextPacket.getData());
+				
+				window[0] = tempPacket;
+				
+				if (Math.random() < corruption_prob) {
+					
+					nextPacket.setCksum((short) 1);
+					
+					System.out.println("Corrupted packet! " + nextPacket.getSeqno());
+					
+				}
 
 				return (nextPacket);
 
@@ -270,13 +297,6 @@ public class PacketHandler {
 
 		short cksum = buf.getShort();
 
-		// check for corrupted packet
-		if (cksum > 0) {
-
-			return (null);
-
-		}
-
 		short length = buf.getShort();
 
 		int ackno = buf.getInt();
@@ -296,6 +316,13 @@ public class PacketHandler {
 			buf.get(data);
 
 			Packet output_p = new Packet(seqno, data);
+
+			// check for corrupted packet
+			if (cksum > 0) {
+
+				output_p.setCksum((short) 1);
+
+			}
 
 			return output_p;
 

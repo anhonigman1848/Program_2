@@ -5,9 +5,9 @@ import java.net.*;
 
 public class UDPServer implements Runnable {
 
-	public final static int DEFAULT_PORT = 7;
+	private final int buffer_size; // in bytes
 
-	private final int bufferSize; // in bytes
+	private final int packet_size;
 
 	private final int port;
 
@@ -15,32 +15,22 @@ public class UDPServer implements Runnable {
 
 	private PacketHandler handler;
 
-	public UDPServer(int port, int bufferSize) {
+	public UDPServer(int port, PacketHandler handler) {
 
 		this.port = port;
 
-		this.bufferSize = bufferSize;
+		this.handler = handler;
 
-		this.handler = new PacketHandler();
+		this.packet_size = handler.getPacketSize();
 
-	}
-
-	public UDPServer(int port) {
-
-		this(port, 1892);
-
-	}
-
-	public UDPServer() {
-
-		this(DEFAULT_PORT);
+		this.buffer_size = packet_size + 12;
 
 	}
 
 	@Override
 	public void run() {
 
-		byte[] buffer = new byte[bufferSize];
+		byte[] buffer = new byte[buffer_size];
 
 		try (DatagramSocket socket = new DatagramSocket(port)) {
 
@@ -110,43 +100,45 @@ public class UDPServer implements Runnable {
 
 		}
 
-		int ackno = received.getAckno();
+		if (!handler.failureCheck() && received.getCksum() == 0) {
 
-		Packet ackpacket = new Packet(ackno);
+			int ackno = received.getAckno();
 
-		DatagramPacket outgoing = handler.packetToDGPacket(ackpacket,
-				packet.getAddress(), packet.getPort());
+			Packet ackpacket = new Packet(ackno);
 
-		if (Math.random() > 0.5) {
-			
+			DatagramPacket outgoing = handler.packetToDGPacket(ackpacket,
+					packet.getAddress(), packet.getPort());
+
 			System.out.println("Server sending ack no " + ackno);
 
 			socket.send(outgoing);
 
-			try {
+		}
 
-				Thread.sleep(1000);
+		try {
 
-			}
+			Thread.sleep(1000);
 
-			catch (InterruptedException ex) {
+		}
 
-				System.out.println(ex);
+		catch (InterruptedException ex) {
 
-			}
+			System.out.println(ex);
 
 		}
 
 	}
 
-/*	public static void main(String[] args) {
-
-		UDPServer server = new UDPServer();
-
-		Thread t = new Thread(server);
-
-		t.start();
-
-	} */
+	/*
+	 * public static void main(String[] args) {
+	 * 
+	 * UDPServer server = new UDPServer();
+	 * 
+	 * Thread t = new Thread(server);
+	 * 
+	 * t.start();
+	 * 
+	 * }
+	 */
 
 }
