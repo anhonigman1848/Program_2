@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 
 import java.net.*;
 
-public class PacketSender {
+public class PacketHandler {
 
 	// store packets in BlockingQueue for Thread support
 	private BlockingQueue<Packet> buffer = new ArrayBlockingQueue<Packet>(1024);
@@ -26,7 +26,7 @@ public class PacketSender {
 
 	private int packet_size;
 
-	public PacketSender() {
+	public PacketHandler() {
 
 		this.window = new Packet[1];
 		

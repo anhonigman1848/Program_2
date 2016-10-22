@@ -10,13 +10,13 @@ class ReceiverThread extends Thread {
 
 	private volatile boolean stopped = false;
 
-	private PacketSender psender;
+	private PacketHandler handler;
 
-	ReceiverThread(DatagramSocket socket, PacketSender psender) {
+	ReceiverThread(DatagramSocket socket, PacketHandler handler) {
 
 		this.socket = socket;
 
-		this.psender = psender;
+		this.handler = handler;
 
 	}
 
@@ -42,25 +42,25 @@ class ReceiverThread extends Thread {
 
 				socket.receive(dp);
 
-				Packet recd = psender.dgpacketToPacket(dp);
+				Packet recd = handler.dgpacketToPacket(dp);
 
 				int ackno = recd.getAckno();
 
 				if (ackno == 0) {
 
-					System.out.println("Received EOF ackno");
+					System.out.println("Client received EOF ackno");
 
-					this.halt();
+					// this.halt();
 
 				}
 
 				else {
 
-					if (ackno > psender.getLastAckReceived()) {
+					if (ackno > handler.getLastAckReceived()) {
 
-						System.out.println("Received ack no " + ackno);
+						System.out.println("Client received ack no " + ackno);
 
-						psender.setLastAckReceived(ackno);
+						handler.setLastAckReceived(ackno);
 
 					}
 

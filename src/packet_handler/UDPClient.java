@@ -18,15 +18,15 @@ public class UDPClient {
 
 			DatagramSocket socket = new DatagramSocket();
 			
-			PacketSender psender = new PacketSender();
+			PacketHandler handler = new PacketHandler();
 
-			psender.setPacketSize(1024);
+			handler.setPacketSize(1024);
 
-			SenderThread sender = new SenderThread(socket, ia, PORT, psender);
+			SenderThread sender = new SenderThread(socket, ia, PORT, handler);
 
 			sender.start();
 
-			Thread receiver = new ReceiverThread(socket, psender);
+			Thread receiver = new ReceiverThread(socket, handler);
 
 			receiver.start();
 

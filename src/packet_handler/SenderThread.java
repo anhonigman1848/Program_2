@@ -12,12 +12,12 @@ class SenderThread extends Thread {
 
 	private int port;
 
-	private PacketSender psender;
+	private PacketHandler handler;
 
 	private volatile boolean stopped = false;
 
 	SenderThread(DatagramSocket socket, InetAddress address, int port,
-			PacketSender psender) {
+			PacketHandler handler) {
 
 		this.server = address;
 
@@ -25,7 +25,7 @@ class SenderThread extends Thread {
 
 		this.socket = socket;
 
-		this.psender = psender;
+		this.handler = handler;
 
 		this.socket.connect(server, port);
 
@@ -42,11 +42,9 @@ class SenderThread extends Thread {
 
 		File testfile = new File("testfile.txt");
 
-		// PacketSender sender = new PacketSender();
+		byte[] test = handler.convertFile(testfile);
 
-		byte[] test = psender.convertFile(testfile);
-
-		psender.makePackets(test);
+		handler.makePackets(test);
 
 		try {
 
@@ -55,14 +53,12 @@ class SenderThread extends Thread {
 				if (stopped)
 					return;
 
-				Packet next = psender.nextPacket();
+				Packet next = handler.nextPacket();
 
-				// System.out.println("Next packet " + next.toString());
-
-				DatagramPacket output = psender.packetToDGPacket(next, server,
+				DatagramPacket output = handler.packetToDGPacket(next, server,
 						port);
 
-				System.out.println("Sending packet no " + next.getSeqno());
+				System.out.println("Client sending packet no " + next.getSeqno());
 
 				socket.send(output);
 
@@ -80,7 +76,7 @@ class SenderThread extends Thread {
 
 				if (next.getSeqno() < 0) {
 
-					System.out.println("End of file reached");
+					System.out.println("Client: End of file reached");
 
 					// this.halt();
 

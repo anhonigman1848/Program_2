@@ -13,7 +13,7 @@ public class UDPServer implements Runnable {
 
 	private volatile boolean isShutDown = false;
 
-	private PacketSender preceiver;
+	private PacketHandler handler;
 
 	public UDPServer(int port, int bufferSize) {
 
@@ -21,7 +21,7 @@ public class UDPServer implements Runnable {
 
 		this.bufferSize = bufferSize;
 
-		this.preceiver = new PacketSender();
+		this.handler = new PacketHandler();
 
 	}
 
@@ -97,19 +97,19 @@ public class UDPServer implements Runnable {
 	public void respond(DatagramSocket socket, DatagramPacket packet)
 			throws IOException {
 
-		Packet received = preceiver.dgpacketToPacket(packet);
+		Packet received = handler.dgpacketToPacket(packet);
 
 		int seqno = received.getSeqno();
 
 		if (seqno < 0) {
 
-			System.out.println("Received end of file");
+			System.out.println("Server received end of file");
 
 		}
 
 		else {
 
-			System.out.println("Received packet no " + seqno);
+			System.out.println("Server received packet no " + seqno);
 
 		}
 
@@ -117,12 +117,12 @@ public class UDPServer implements Runnable {
 
 		Packet ackpacket = new Packet(ackno);
 
-		DatagramPacket outgoing = preceiver.packetToDGPacket(ackpacket,
+		DatagramPacket outgoing = handler.packetToDGPacket(ackpacket,
 				packet.getAddress(), packet.getPort());
 
 		if (Math.random() > 0.5) {
 			
-			System.out.println("Sending ack no " + ackno);
+			System.out.println("Server sending ack no " + ackno);
 
 			socket.send(outgoing);
 
