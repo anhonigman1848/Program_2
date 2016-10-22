@@ -1,7 +1,6 @@
 package packet_handler;
 
 import java.io.*;
-
 import java.net.*;
 
 public class UDPServer implements Runnable {
@@ -14,15 +13,19 @@ public class UDPServer implements Runnable {
 
 	private volatile boolean isShutDown = false;
 
-	public UDPServer (int port, int bufferSize) {
+	private PacketSender preceiver;
+
+	public UDPServer(int port, int bufferSize) {
 
 		this.port = port;
 
-		this.bufferSize =  bufferSize;
+		this.bufferSize = bufferSize;
+
+		this.preceiver = new PacketSender();
 
 	}
 
-	public UDPServer (int port) {
+	public UDPServer(int port) {
 
 		this(port, 1892);
 
@@ -35,20 +38,22 @@ public class UDPServer implements Runnable {
 	}
 
 	@Override
-
 	public void run() {
 
 		byte[] buffer = new byte[bufferSize];
 
 		try (DatagramSocket socket = new DatagramSocket(port)) {
 
-			socket.setSoTimeout(10000); // check every 10 seconds for shutdown
+			// socket.setSoTimeout(10000); // check every 10 seconds for
+			// shutdown
 
 			while (true) {
 
-				if (isShutDown) return;
+				if (isShutDown)
+					return;
 
-				DatagramPacket incoming = new DatagramPacket(buffer, buffer.length);
+				DatagramPacket incoming = new DatagramPacket(buffer,
+						buffer.length);
 
 				try {
 
@@ -56,13 +61,14 @@ public class UDPServer implements Runnable {
 
 					this.respond(socket, incoming);
 
-				} 
+				}
 
 				catch (SocketTimeoutException ex) {
 
-					if (isShutDown) return;
+					if (isShutDown)
+						return;
 
-				} 
+				}
 
 				catch (IOException ex) {
 
@@ -72,7 +78,7 @@ public class UDPServer implements Runnable {
 
 			}
 
-		} 
+		}
 
 		catch (SocketException ex) {
 
@@ -88,12 +94,10 @@ public class UDPServer implements Runnable {
 
 	}
 
-	public void respond(DatagramSocket socket, DatagramPacket packet) 
+	public void respond(DatagramSocket socket, DatagramPacket packet)
 			throws IOException {
 
-		PacketSender receiver = new PacketSender();
-
-		Packet received = receiver.dgpacketToPacket(packet);
+		Packet received = preceiver.dgpacketToPacket(packet);
 
 		int seqno = received.getSeqno();
 
@@ -113,10 +117,28 @@ public class UDPServer implements Runnable {
 
 		Packet ackpacket = new Packet(ackno);
 
-		DatagramPacket outgoing = receiver.packetToDGPacket(
-				ackpacket, packet.getAddress(), packet.getPort());
+		DatagramPacket outgoing = preceiver.packetToDGPacket(ackpacket,
+				packet.getAddress(), packet.getPort());
 
-		socket.send(outgoing);
+		if (Math.random() > 0.5) {
+			
+			System.out.println("Sending ack no " + ackno);
+
+			socket.send(outgoing);
+
+			try {
+
+				Thread.sleep(1000);
+
+			}
+
+			catch (InterruptedException ex) {
+
+				System.out.println(ex);
+
+			}
+
+		}
 
 	}
 
