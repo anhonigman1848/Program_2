@@ -66,8 +66,8 @@ public class ClientPacketHandler {
 		
 		if (Math.random() < failure_prob) {
 			
-			System.out.println("Failed to send packet!");
-			
+			//System.out.println("Failed to send packet!");
+			udpClient.setOutputMessage("Failed to send packet!");
 
 			return(true);
 			
@@ -188,8 +188,8 @@ public class ClientPacketHandler {
 					
 					nextPacket.setCksum((short) 1);
 					
-					System.out.println("Corrupted packet! " + nextPacket.getSeqno());
-					
+					//System.out.println("Sending Corrupted packet! " + nextPacket.getSeqno());
+					udpClient.setOutputMessage("Sending Corrupted packet! " + nextPacket.getSeqno());
 					
 					
 				}

@@ -67,6 +67,7 @@ public class UDPServer extends Observable implements Runnable {
 
 					socket.receive(incoming);
 					
+					
 					this.respond(socket, incoming);
 
 				}
@@ -109,7 +110,11 @@ public class UDPServer extends Observable implements Runnable {
 
 		int seqno = received.getSeqno();
 
-		if (seqno < 0) {
+		if (received.getCksum() == 1){
+			setOutputMessage("Corrupted packet! " + received.getSeqno());
+		}
+		
+		else if (seqno < 0) {
 
 			//System.out.println("Server received end of file");
 			setOutputMessage("Server received end of file");
