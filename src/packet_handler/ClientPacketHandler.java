@@ -184,7 +184,7 @@ public class ClientPacketHandler {
 				
 				window[0] = tempPacket;
 				
-				if (Math.random() < corruption_prob) {
+				if (Math.random() < corruption_prob && (tempPacket.getSeqno() > 0)) {
 					
 					nextPacket.setCksum((short) 1);
 					

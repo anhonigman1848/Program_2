@@ -10,7 +10,7 @@ public class UDPServer extends Observable implements Runnable {
 
 	private final int buffer_size; // in bytes
 
-	private int packet_size;
+	private int packet_size = 1024;
 
 	private final int port;
 	
