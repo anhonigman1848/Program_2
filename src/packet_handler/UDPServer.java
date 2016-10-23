@@ -5,21 +5,23 @@ import java.net.*;
 import java.util.Observable;
 
 public class UDPServer extends Observable implements Runnable {
-	
+
 	static ServerGui serverGui;
 
 	private final int buffer_size; // in bytes
 
-	private int packet_size = 1024;
+	private int packet_size;
+
+	private int timeout_interval;
 
 	private final int port;
-	
-	private double failure_prob = 0.0;
-	
-	private double corrupt_prob = 0.0;
+
+	private double failure_prob;
+
+	private double corruption_prob;
 
 	private volatile boolean isShutDown = false;
-	
+
 	private String outputMessage = "";
 
 	ServerPacketHandler server_handler;
@@ -28,18 +30,15 @@ public class UDPServer extends Observable implements Runnable {
 
 		this.port = port;
 
-		/*this.handler = new ServerPacketHandler(
-				packet_size, failure_prob, this);*/
-
-		//FIXME, packet size still needs to be set somewhere
-		//this.packet_size = handler.getPacketSize();
+		/*
+		 * this.handler = new ServerPacketHandler( packet_size, failure_prob,
+		 * this);
+		 */
 
 		this.buffer_size = packet_size + 12;
-		
-		//FIXME probably shouldnt need to pass 
+
+		// FIXME probably shouldnt need to pass
 		this.serverGui = serverGui;
-		
-		failure_prob = serverGui.getPacketLossPercentage();
 
 	}
 
@@ -49,25 +48,20 @@ public class UDPServer extends Observable implements Runnable {
 		byte[] buffer = new byte[buffer_size];
 
 		try (DatagramSocket socket = new DatagramSocket(port)) {
-			
-			server_handler = new ServerPacketHandler(
-					packet_size, failure_prob, corrupt_prob,  this);
-			
-			packet_size = server_handler.getPacketSize();
+
+			server_handler = new ServerPacketHandler(packet_size, failure_prob, corruption_prob, this);
 
 			while (true) {
 
 				if (isShutDown)
 					return;
 
-				DatagramPacket incoming = new DatagramPacket(buffer,
-						buffer.length);
+				DatagramPacket incoming = new DatagramPacket(buffer, buffer.length);
 
 				try {
 
 					socket.receive(incoming);
-					
-					
+
 					this.respond(socket, incoming);
 
 				}
@@ -103,50 +97,62 @@ public class UDPServer extends Observable implements Runnable {
 
 	}
 
-	public void respond(DatagramSocket socket, DatagramPacket packet)
-			throws IOException {
+	public void respond(DatagramSocket socket, DatagramPacket dgpacket) throws IOException {
 
-		Packet received = server_handler.dgpacketToPacket(packet);
+		// convert DatagramPacket to Packet
+		Packet received = server_handler.dgpacketToPacket(dgpacket);
 
-		int seqno = received.getSeqno();
-
-		if (received.getCksum() == 1){
-			setOutputMessage("Corrupted packet! " + received.getSeqno());
+		// check for corrupted packet
+		if (received.getCksum() == 1) {
+			setOutputMessage("Server received and discarded corrupted packet " + received.getSeqno());
 		}
-		
-		else if (seqno < 0) {
 
-			//System.out.println("Server received end of file");
+		// check for end of file packet
+		else if (received.getSeqno() < 0) {
+
+			// System.out.println("Server received end of file");
 			setOutputMessage("Server received end of file");
 
 		}
 
+		// this is a good packet and not end of file
 		else {
 
-			//System.out.println("Server received packet no " + seqno);
-			setOutputMessage("Server received packet no " + seqno);
+			setOutputMessage("Server received packet no " + received.getSeqno());
 
 		}
 
-		if (!server_handler.failureCheck() && received.getCksum() == 0) {
+		// sending ack
+		// if the received packet was corrupted, don't send ack
+		if (received.getCksum() != 1) {
 
 			int ackno = received.getAckno();
 
 			Packet ackpacket = new Packet(ackno);
 
-			DatagramPacket outgoing = server_handler.packetToDGPacket(ackpacket,
-					packet.getAddress(), packet.getPort());
+			DatagramPacket outgoing = server_handler.packetToDGPacket(ackpacket, dgpacket.getAddress(),
+					dgpacket.getPort());
 
-			//System.out.println("Server sending ack no " + ackno);
-			setOutputMessage("Server sending ack no " + ackno);
+			// check for failure to send ack
+			if (server_handler.failureCheck()) {
 
-			socket.send(outgoing);
+				setOutputMessage("Server failed to send ack " + ackno);
+
+			}
+
+			else {
+
+				setOutputMessage("Server sending ack no " + ackno);
+
+				socket.send(outgoing);
+
+			}
 
 		}
 
 		try {
 
-			Thread.sleep(1000);
+			Thread.sleep(timeout_interval);
 
 		}
 
@@ -166,6 +172,38 @@ public class UDPServer extends Observable implements Runnable {
 		this.outputMessage = outputMessage;
 		setChanged();
 		notifyObservers(outputMessage);
+	}
+
+	public double getCorruption_prob() {
+		return corruption_prob;
+	}
+
+	public void setCorruption_prob(double corruption_prob) {
+		this.corruption_prob = corruption_prob;
+	}
+
+	public double getFailure_prob() {
+		return failure_prob;
+	}
+
+	public void setFailure_prob(double failure_prob) {
+		this.failure_prob = failure_prob;
+	}
+
+	public int getPacket_size() {
+		return packet_size;
+	}
+
+	public void setPacket_size(int packet_size) {
+		this.packet_size = packet_size;
+	}
+
+	public int getTimeout_interval() {
+		return timeout_interval;
+	}
+
+	public void setTimeout_interval(int timeout_interval) {
+		this.timeout_interval = timeout_interval;
 	}
 
 	/*

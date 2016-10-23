@@ -25,6 +25,7 @@ import java.awt.ScrollPane;
 public class ClientGui extends JFrame implements Observer {
 	//test comment
 	UDPClient udpClient;
+	RunUDP runUdp;
 	
 	private JPanel contentPane;
 	
@@ -69,9 +70,10 @@ public class ClientGui extends JFrame implements Observer {
 	/**
 	 * Create the frame.
 	 */
-	public ClientGui(UDPClient udpClient) {
+	public ClientGui(UDPClient udpClient, RunUDP runUdp) {
 		setTitle("Client");
 		this.udpClient = udpClient;
+		this.runUdp = runUdp;
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 603, 606);
@@ -115,8 +117,12 @@ public class ClientGui extends JFrame implements Observer {
 		btnSendFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				udpClient.setSelectedFile(selectedFile);
-				udpClient.setCorruption_prob(Double.parseDouble(corruptionTextField.getText()));
-				udpClient.setFailure_prob(Double.parseDouble(packetLossTextField.getText()));
+				double corruption_prob = Double.parseDouble(corruptionTextField.getText());
+				double failure_prob = Double.parseDouble(packetLossTextField.getText());
+				int packet_size = 1024; // FIXME - link to packet text field
+				int timeout_interval = 1000; // FIXME - link to timeout text field
+				runUdp.setParameters(failure_prob, corruption_prob,
+						packet_size, timeout_interval);
 				
 				udpClient.run();
 			}

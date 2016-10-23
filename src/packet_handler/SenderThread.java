@@ -13,6 +13,8 @@ class SenderThread extends Thread {
 	private DatagramSocket socket;
 
 	private int port;
+	
+	private int timeout_interval;
 
 	private ClientPacketHandler handler;
 
@@ -32,6 +34,8 @@ class SenderThread extends Thread {
 		this.socket.connect(server, port);
 		
 		this.udpClient = udpClient;
+		
+		this.timeout_interval = udpClient.getTimeout_interval();
 
 	}
 
@@ -75,7 +79,7 @@ class SenderThread extends Thread {
 
 				try {
 
-					Thread.sleep(1000);
+					Thread.sleep(timeout_interval);
 
 				}
 

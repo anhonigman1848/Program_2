@@ -41,6 +41,8 @@ public class ClientPacketHandler {
 		this.lastAckReceived = 1;
 	
 		this.udpClient = udpClient;
+		
+		System.out.println(this.toString());
 
 	}
 
@@ -292,6 +294,12 @@ public class ClientPacketHandler {
 
 		return (output_dg);
 
+	}
+
+	@Override
+	public String toString() {
+		return "ClientPacketHandler [packet_size=" + packet_size + ", corruption_prob=" + corruption_prob
+				+ ", failure_prob=" + failure_prob + "]";
 	}
 
 	public Packet dgpacketToPacket(DatagramPacket dgPacket) {

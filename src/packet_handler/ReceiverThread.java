@@ -9,6 +9,8 @@ class ReceiverThread extends Thread {
 	UDPClient udpClient;
 	
 	private DatagramSocket socket;
+	
+	private int packet_size;
 
 	private volatile boolean stopped = false;
 
@@ -21,6 +23,8 @@ class ReceiverThread extends Thread {
 		this.handler = handler;
 		
 		this.udpClient = udpClient;
+		
+		this.packet_size = udpClient.getPacket_size();
 
 	}
 
@@ -33,7 +37,7 @@ class ReceiverThread extends Thread {
 	@Override
 	public void run() {
 
-		byte[] buffer = new byte[65507];
+		byte[] buffer = new byte[packet_size + 12];
 
 		while (true) {
 

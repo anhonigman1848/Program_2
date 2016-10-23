@@ -9,20 +9,19 @@ public class UDPClient extends Observable implements Runnable {
 	static ClientGui clientGui;
 
 	protected File selectedFile;
-	
-	
 
 	private String outputMessage = "";
 	
 	private final static int PORT = 7;
 	
-	private static int packet_size = 1024;
+	private int packet_size;
 	
-	private static double corruption_prob = 0.25;
+	private int timeout_interval;
 	
-	private static double failure_prob = 0.1;
+	private double corruption_prob;
 	
-	//public static void main(String[] args) {
+	private double failure_prob;
+	
 	public void run(){	
 		//Create the GUI for the client
 		//clientGui = new ClientGui();
@@ -49,8 +48,7 @@ public class UDPClient extends Observable implements Runnable {
 			InetAddress ia = InetAddress.getByName(hostname);
 
 			DatagramSocket socket = new DatagramSocket();
-			
-			
+						
 			ClientPacketHandler client_handler = new ClientPacketHandler(
 					packet_size, corruption_prob, failure_prob, this);
 
@@ -78,20 +76,36 @@ public class UDPClient extends Observable implements Runnable {
 
 	}
 
-	public static double getCorruption_prob() {
+	public int getPacket_size() {
+		return packet_size;
+	}
+
+	public void setPacket_size(int packet_size) {
+		this.packet_size = packet_size;
+	}
+
+	public int getTimeout_interval() {
+		return timeout_interval;
+	}
+
+	public void setTimeout_interval(int timeout_interval) {
+		this.timeout_interval = timeout_interval;
+	}
+
+	public double getCorruption_prob() {
 		return corruption_prob;
 	}
 
 	public void setCorruption_prob(double corruption_prob) {
-		UDPClient.corruption_prob = corruption_prob;
+		this.corruption_prob = corruption_prob;
 	}
 
-	public static double getFailure_prob() {
+	public double getFailure_prob() {
 		return failure_prob;
 	}
 
 	public void setFailure_prob(double failure_prob) {
-		UDPClient.failure_prob = failure_prob;
+		this.failure_prob = failure_prob;
 	}
 
 	public String getOutputMessage() {

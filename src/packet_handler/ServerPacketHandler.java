@@ -42,6 +42,7 @@ public class ServerPacketHandler {
 	
 		this.udpServer = udpServer;
 		
+		System.out.println(this.toString());
 
 	}
 
@@ -67,9 +68,6 @@ public class ServerPacketHandler {
 		
 		if (Math.random() < failure_prob) {
 			
-			System.out.println("Failed to send packet!");
-			
-
 			return(true);
 			
 		}
@@ -336,6 +334,12 @@ public class ServerPacketHandler {
 
 		}
 
+	}
+
+	@Override
+	public String toString() {
+		return "ServerPacketHandler [packet_size=" + packet_size + ", corruption_prob=" + corruption_prob
+				+ ", failure_prob=" + failure_prob + "]";
 	}
 
 }
