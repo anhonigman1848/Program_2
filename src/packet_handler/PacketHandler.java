@@ -10,6 +10,8 @@ import java.net.*;
 
 public class PacketHandler {
 
+	
+	
 	// store packets in BlockingQueue for Thread support
 	private BlockingQueue<Packet> buffer = new ArrayBlockingQueue<Packet>(1024);
 
@@ -37,6 +39,8 @@ public class PacketHandler {
 		this.window = new Packet[1];
 		
 		this.lastAckReceived = 1;
+	
+		
 
 	}
 
@@ -63,6 +67,7 @@ public class PacketHandler {
 		if (Math.random() < failure_prob) {
 			
 			System.out.println("Failed to send packet!");
+			
 
 			return(true);
 			
@@ -184,6 +189,8 @@ public class PacketHandler {
 					nextPacket.setCksum((short) 1);
 					
 					System.out.println("Corrupted packet! " + nextPacket.getSeqno());
+					
+					
 					
 				}
 

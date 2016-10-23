@@ -2,8 +2,11 @@ package packet_handler;
 
 import java.io.*;
 import java.net.*;
+import java.util.Observable;
 
-public class UDPServer implements Runnable {
+public class UDPServer extends Observable implements Runnable {
+	
+	static ServerGui serverGui;
 
 	private final int buffer_size; // in bytes
 
@@ -12,6 +15,8 @@ public class UDPServer implements Runnable {
 	private final int port;
 
 	private volatile boolean isShutDown = false;
+	
+	private String outputMessage = "";
 
 	private PacketHandler handler;
 
@@ -90,13 +95,15 @@ public class UDPServer implements Runnable {
 
 		if (seqno < 0) {
 
-			System.out.println("Server received end of file");
+			//System.out.println("Server received end of file");
+			setOutputMessage("Server received end of file");
 
 		}
 
 		else {
 
-			System.out.println("Server received packet no " + seqno);
+			//System.out.println("Server received packet no " + seqno);
+			setOutputMessage("Server received packet no " + seqno);
 
 		}
 
@@ -109,7 +116,8 @@ public class UDPServer implements Runnable {
 			DatagramPacket outgoing = handler.packetToDGPacket(ackpacket,
 					packet.getAddress(), packet.getPort());
 
-			System.out.println("Server sending ack no " + ackno);
+			//System.out.println("Server sending ack no " + ackno);
+			setOutputMessage("Server sending ack no " + ackno);
 
 			socket.send(outgoing);
 
@@ -127,6 +135,16 @@ public class UDPServer implements Runnable {
 
 		}
 
+	}
+
+	public String getOutputMessage() {
+		return outputMessage;
+	}
+
+	public void setOutputMessage(String outputMessage) {
+		this.outputMessage = outputMessage;
+		setChanged();
+		notifyObservers(outputMessage);
 	}
 
 	/*

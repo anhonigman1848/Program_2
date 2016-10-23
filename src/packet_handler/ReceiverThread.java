@@ -6,17 +6,21 @@ import java.net.*;
 
 class ReceiverThread extends Thread {
 
+	UDPClient udpClient;
+	
 	private DatagramSocket socket;
 
 	private volatile boolean stopped = false;
 
 	private PacketHandler handler;
 
-	ReceiverThread(DatagramSocket socket, PacketHandler handler) {
+	ReceiverThread(DatagramSocket socket, PacketHandler handler, UDPClient udpClient) {
 
 		this.socket = socket;
 
 		this.handler = handler;
+		
+		this.udpClient = udpClient;
 
 	}
 
@@ -48,8 +52,9 @@ class ReceiverThread extends Thread {
 
 				if (ackno == 0) {
 
-					System.out.println("Client received EOF ackno");
-
+					
+					//System.out.println("Client received EOF ackno");
+					udpClient.setOutputMessage("Client recieved EOF ackno");
 					// this.halt();
 
 				}
@@ -58,7 +63,9 @@ class ReceiverThread extends Thread {
 
 					if (ackno > handler.getLastAckReceived()) {
 
-						System.out.println("Client received ack no " + ackno);
+						//System.out.println("Client received ack no " + ackno);
+						
+						udpClient.setOutputMessage("Client received ack no " + ackno);
 
 						handler.setLastAckReceived(ackno);
 

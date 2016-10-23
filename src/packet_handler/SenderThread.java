@@ -6,6 +6,8 @@ import java.net.*;
 
 class SenderThread extends Thread {
 
+	UDPClient udpClient;
+	
 	private InetAddress server;
 
 	private DatagramSocket socket;
@@ -17,7 +19,7 @@ class SenderThread extends Thread {
 	private volatile boolean stopped = false;
 
 	SenderThread(DatagramSocket socket, InetAddress address, int port,
-			PacketHandler handler) {
+			PacketHandler handler, UDPClient udpClient) {
 
 		this.server = address;
 
@@ -28,6 +30,8 @@ class SenderThread extends Thread {
 		this.handler = handler;
 
 		this.socket.connect(server, port);
+		
+		this.udpClient = udpClient;
 
 	}
 
@@ -40,7 +44,8 @@ class SenderThread extends Thread {
 	@Override
 	public void run() {
 
-		File testfile = new File("testfile.txt");
+		//File testfile = new File("testfile.txt");
+		File testfile = udpClient.getSelectedFile();
 
 		byte[] test = handler.convertFile(testfile);
 
@@ -60,9 +65,10 @@ class SenderThread extends Thread {
 
 				if (!handler.failureCheck()) {
 
-					System.out.println("Client sending packet no "
-							+ next.getSeqno());
-
+					/*System.out.println("Client sending packet no "
+							+ next.getSeqno());*/
+					
+					udpClient.setOutputMessage("Client sending packet no " + next.getSeqno());
 					socket.send(output);
 
 				}
@@ -81,8 +87,9 @@ class SenderThread extends Thread {
 
 				if (next.getSeqno() < 0) {
 
-					System.out.println("Client: End of file reached");
-
+					//System.out.println("Client: End of file reached");
+					
+					udpClient.setOutputMessage("Client: End of file reached");
 					// this.halt();
 
 				}
