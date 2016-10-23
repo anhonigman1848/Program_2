@@ -67,7 +67,7 @@ public class ClientPacketHandler {
 		if (Math.random() < failure_prob) {
 			
 			//System.out.println("Failed to send packet!");
-			udpClient.setOutputMessage("Failed to send packet!");
+			udpClient.setOutputMessage("Failed to send packet, no response from Server!");
 
 			return(true);
 			
