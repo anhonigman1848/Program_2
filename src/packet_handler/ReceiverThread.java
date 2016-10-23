@@ -12,9 +12,9 @@ class ReceiverThread extends Thread {
 
 	private volatile boolean stopped = false;
 
-	private PacketHandler handler;
+	private ClientPacketHandler handler;
 
-	ReceiverThread(DatagramSocket socket, PacketHandler handler, UDPClient udpClient) {
+	ReceiverThread(DatagramSocket socket, ClientPacketHandler handler, UDPClient udpClient) {
 
 		this.socket = socket;
 

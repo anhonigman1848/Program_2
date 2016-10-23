@@ -10,25 +10,36 @@ public class UDPServer extends Observable implements Runnable {
 
 	private final int buffer_size; // in bytes
 
-	private final int packet_size;
+	private int packet_size;
 
 	private final int port;
+	
+	private double failure_prob = 0.0;
+	
+	private double corrupt_prob = 0.0;
 
 	private volatile boolean isShutDown = false;
 	
 	private String outputMessage = "";
 
-	private PacketHandler handler;
+	ServerPacketHandler server_handler;
 
-	public UDPServer(int port, PacketHandler handler) {
+	public UDPServer(int port, ServerGui serverGui) {
 
 		this.port = port;
 
-		this.handler = handler;
+		/*this.handler = new ServerPacketHandler(
+				packet_size, failure_prob, this);*/
 
-		this.packet_size = handler.getPacketSize();
+		//FIXME, packet size still needs to be set somewhere
+		//this.packet_size = handler.getPacketSize();
 
 		this.buffer_size = packet_size + 12;
+		
+		//FIXME probably shouldnt need to pass 
+		this.serverGui = serverGui;
+		
+		failure_prob = serverGui.getPacketLossPercentage();
 
 	}
 
@@ -38,6 +49,11 @@ public class UDPServer extends Observable implements Runnable {
 		byte[] buffer = new byte[buffer_size];
 
 		try (DatagramSocket socket = new DatagramSocket(port)) {
+			
+			server_handler = new ServerPacketHandler(
+					packet_size, failure_prob, corrupt_prob,  this);
+			
+			packet_size = server_handler.getPacketSize();
 
 			while (true) {
 
@@ -50,7 +66,7 @@ public class UDPServer extends Observable implements Runnable {
 				try {
 
 					socket.receive(incoming);
-
+					
 					this.respond(socket, incoming);
 
 				}
@@ -89,7 +105,7 @@ public class UDPServer extends Observable implements Runnable {
 	public void respond(DatagramSocket socket, DatagramPacket packet)
 			throws IOException {
 
-		Packet received = handler.dgpacketToPacket(packet);
+		Packet received = server_handler.dgpacketToPacket(packet);
 
 		int seqno = received.getSeqno();
 
@@ -107,13 +123,13 @@ public class UDPServer extends Observable implements Runnable {
 
 		}
 
-		if (!handler.failureCheck() && received.getCksum() == 0) {
+		if (!server_handler.failureCheck() && received.getCksum() == 0) {
 
 			int ackno = received.getAckno();
 
 			Packet ackpacket = new Packet(ackno);
 
-			DatagramPacket outgoing = handler.packetToDGPacket(ackpacket,
+			DatagramPacket outgoing = server_handler.packetToDGPacket(ackpacket,
 					packet.getAddress(), packet.getPort());
 
 			//System.out.println("Server sending ack no " + ackno);

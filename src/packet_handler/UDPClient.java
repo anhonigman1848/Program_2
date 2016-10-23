@@ -51,8 +51,8 @@ public class UDPClient extends Observable implements Runnable {
 			DatagramSocket socket = new DatagramSocket();
 			
 			
-			PacketHandler client_handler = new PacketHandler(
-					packet_size, corruption_prob, failure_prob);
+			ClientPacketHandler client_handler = new ClientPacketHandler(
+					packet_size, corruption_prob, failure_prob, this);
 
 			SenderThread sender = new SenderThread(socket, ia, PORT, client_handler, this);
 

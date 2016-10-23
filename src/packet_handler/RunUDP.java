@@ -22,12 +22,12 @@ public class RunUDP {
 		
 		udpClient.addObserver(clientGui);
 		
-		PacketHandler server_handler = new PacketHandler(
-				packet_size, corruption_prob, failure_prob);
+		/*PacketHandler server_handler = new ClientPacketHandler(
+				packet_size, corruption_prob, failure_prob);*/
 		
 		
-		UDPServer udpServer = new UDPServer(PORT, server_handler );
 		ServerGui serverGui = new ServerGui();
+		UDPServer udpServer = new UDPServer(PORT, serverGui);
 		udpServer.addObserver(serverGui);
 		
 		

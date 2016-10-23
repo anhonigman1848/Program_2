@@ -14,12 +14,12 @@ class SenderThread extends Thread {
 
 	private int port;
 
-	private PacketHandler handler;
+	private ClientPacketHandler handler;
 
 	private volatile boolean stopped = false;
 
 	SenderThread(DatagramSocket socket, InetAddress address, int port,
-			PacketHandler handler, UDPClient udpClient) {
+			ClientPacketHandler handler, UDPClient udpClient) {
 
 		this.server = address;
 

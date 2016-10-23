@@ -8,9 +8,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.nio.ByteBuffer;
 import java.net.*;
 
-public class PacketHandler {
-
+public class ClientPacketHandler {
 	
+	UDPClient udpClient;
 	
 	// store packets in BlockingQueue for Thread support
 	private BlockingQueue<Packet> buffer = new ArrayBlockingQueue<Packet>(1024);
@@ -28,7 +28,7 @@ public class PacketHandler {
 	// probability that a Packet will fail on sending
 	private double failure_prob;
 
-	public PacketHandler(int packet_size, double corruption_prob, double failure_prob) {
+	public ClientPacketHandler(int packet_size, double corruption_prob, double failure_prob, UDPClient udpClient) {
 		
 		this.packet_size = packet_size;
 		
@@ -40,7 +40,7 @@ public class PacketHandler {
 		
 		this.lastAckReceived = 1;
 	
-		
+		this.udpClient = udpClient;
 
 	}
 
