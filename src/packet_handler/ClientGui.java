@@ -21,6 +21,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
 import javax.swing.JScrollBar;
 import java.awt.ScrollPane;
+import javax.swing.SwingConstants;
 
 public class ClientGui extends JFrame implements Observer {
 	//test comment
@@ -48,6 +49,12 @@ public class ClientGui extends JFrame implements Observer {
 	
 	private JTextField corruptionTextField;
 	private double corruptionPercentage = 0.0;
+	
+	private JTextField packetSizeTextField;
+	private int packet_size = 0;
+	
+	private JTextField timeoutTextField;
+	private int timeout_interval = 0;
 	
 
 
@@ -117,10 +124,13 @@ public class ClientGui extends JFrame implements Observer {
 		btnSendFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				udpClient.setSelectedFile(selectedFile);
+				
 				double corruption_prob = Double.parseDouble(corruptionTextField.getText());
 				double failure_prob = Double.parseDouble(packetLossTextField.getText());
-				int packet_size = 1024; // FIXME - link to packet text field
-				int timeout_interval = 1000; // FIXME - link to timeout text field
+				
+				int packet_size = Integer.parseInt(packetSizeTextField.getText());
+				int timeout_interval = Integer.parseInt(timeoutTextField.getText());
+				
 				runUdp.setParameters(failure_prob, corruption_prob,
 						packet_size, timeout_interval);
 				
@@ -136,24 +146,48 @@ public class ClientGui extends JFrame implements Observer {
 		contentPane.add(scrollPane);
 		
 		JLabel lblPacketLoss = new JLabel("Packet Loss (%):");
-		lblPacketLoss.setBounds(325, 41, 98, 14);
+		lblPacketLoss.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblPacketLoss.setBounds(306, 87, 120, 14);
 		contentPane.add(lblPacketLoss);
 		
 		packetLossTextField = new JTextField();
-		packetLossTextField.setBounds(433, 38, 86, 20);
+		packetLossTextField.setBounds(427, 84, 86, 20);
 		packetLossTextField.setText("0");
 		contentPane.add(packetLossTextField);
 		packetLossTextField.setColumns(10);
 		
 		JLabel lblCorruption = new JLabel("Corruption (%):");
-		lblCorruption.setBounds(325, 84, 98, 14);
+		lblCorruption.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblCorruption.setBounds(306, 114, 120, 14);
 		contentPane.add(lblCorruption);
 		
 		corruptionTextField = new JTextField();
-		corruptionTextField.setBounds(433, 82, 86, 20);
+		corruptionTextField.setBounds(427, 112, 86, 20);
 		corruptionTextField.setText("0");
 		contentPane.add(corruptionTextField);
 		corruptionTextField.setColumns(10);
+		
+		JLabel lblPacketSize = new JLabel("Packet Size:");
+		lblPacketSize.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblPacketSize.setBounds(306, 29, 120, 14);
+		contentPane.add(lblPacketSize);
+		
+		packetSizeTextField = new JTextField();
+		packetSizeTextField.setBounds(427, 26, 86, 20);
+		packetSizeTextField.setText("1024");
+		contentPane.add(packetSizeTextField);
+		packetSizeTextField.setColumns(10);
+		
+		JLabel lblClientTimeoutms = new JLabel("Client Timeout (ms):");
+		lblClientTimeoutms.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblClientTimeoutms.setBounds(306, 58, 120, 14);
+		contentPane.add(lblClientTimeoutms);
+		
+		timeoutTextField = new JTextField();
+		timeoutTextField.setBounds(427, 55, 86, 20);
+		timeoutTextField.setText("1000");
+		contentPane.add(timeoutTextField);
+		timeoutTextField.setColumns(10);
 		
 		//contentPane.setVisible(true);
 	}
