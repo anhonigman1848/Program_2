@@ -2,7 +2,6 @@ package packet_handler;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.nio.ByteBuffer;
@@ -14,6 +13,9 @@ public class ClientPacketHandler {
 	
 	// store packets in BlockingQueue for Thread support
 	private BlockingQueue<Packet> buffer = new ArrayBlockingQueue<Packet>(1024);
+	
+	// keep track of how many bytes sent
+	private int bytes_sent;
 
 	// store sent packets in Packet array
 	private Packet[] window;
@@ -42,13 +44,19 @@ public class ClientPacketHandler {
 	
 		this.udpClient = udpClient;
 		
-		System.out.println(this.toString());
-
+		this.bytes_sent = 0;
+		
 	}
 
 	public int getPacketSize() {
 
 		return (packet_size);
+
+	}
+
+	public int getBytesSent() {
+
+		return (bytes_sent);
 
 	}
 
@@ -179,6 +187,8 @@ public class ClientPacketHandler {
 			else {
 
 				Packet nextPacket = buffer.take();
+				
+				bytes_sent += nextPacket.getData().length;
 
 				// save "clean" copy of nextPacket in window
 				Packet tempPacket = new Packet(nextPacket.getSeqno(),

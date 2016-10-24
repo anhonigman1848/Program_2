@@ -8,8 +8,6 @@ public class UDPServer extends Observable implements Runnable {
 
 	static ServerGui serverGui;
 
-	private final int buffer_size; // in bytes
-
 	private int packet_size;
 
 	private int timeout_interval;
@@ -30,13 +28,6 @@ public class UDPServer extends Observable implements Runnable {
 
 		this.port = port;
 
-		/*
-		 * this.handler = new ServerPacketHandler( packet_size, failure_prob,
-		 * this);
-		 */
-
-		this.buffer_size = packet_size + 12;
-
 		// FIXME probably shouldnt need to pass
 		this.serverGui = serverGui;
 
@@ -45,56 +36,39 @@ public class UDPServer extends Observable implements Runnable {
 	@Override
 	public void run() {
 
-		byte[] buffer = new byte[buffer_size];
+		byte[] buffer = new byte[packet_size + 12];
 
 		try (DatagramSocket socket = new DatagramSocket(port)) {
 
 			server_handler = new ServerPacketHandler(packet_size, failure_prob, corruption_prob, this);
 
 			while (true) {
-
-				if (isShutDown)
-					return;
+				if (isShutDown)	{return;}
 
 				DatagramPacket incoming = new DatagramPacket(buffer, buffer.length);
 
 				try {
-
 					socket.receive(incoming);
-
 					this.respond(socket, incoming);
-
 				}
 
 				catch (SocketTimeoutException ex) {
-
-					if (isShutDown)
-						return;
-
+					if (isShutDown) {return;}
 				}
 
 				catch (IOException ex) {
-
 					System.err.println(ex);
-
 				}
-
 			}
-
 		}
 
 		catch (SocketException ex) {
-
 			System.err.println(ex);
-
 		}
-
 	}
 
 	public void shutDown() {
-
 		this.isShutDown = true;
-
 	}
 
 	public void respond(DatagramSocket socket, DatagramPacket dgpacket) throws IOException {
@@ -109,57 +83,41 @@ public class UDPServer extends Observable implements Runnable {
 
 		// check for end of file packet
 		else if (received.getSeqno() < 0) {
-
-			// System.out.println("Server received end of file");
-			setOutputMessage("Server received end of file");
-
+			int bytes = server_handler.getBytes_stored();
+			setOutputMessage("Server received end of file; " + bytes + " bytes stored");
 		}
 
 		// this is a good packet and not end of file
 		else {
-
 			setOutputMessage("Server received packet no " + received.getSeqno());
-
+			server_handler.addToBuffer(received);
 		}
 
 		// sending ack
 		// if the received packet was corrupted, don't send ack
 		if (received.getCksum() != 1) {
-
 			int ackno = received.getAckno();
-
 			Packet ackpacket = new Packet(ackno);
-
 			DatagramPacket outgoing = server_handler.packetToDGPacket(ackpacket, dgpacket.getAddress(),
 					dgpacket.getPort());
 
 			// check for failure to send ack
 			if (server_handler.failureCheck()) {
-
 				setOutputMessage("Server failed to send ack " + ackno);
-
 			}
 
 			else {
-
 				setOutputMessage("Server sending ack no " + ackno);
-
 				socket.send(outgoing);
-
 			}
-
 		}
 
 		try {
-
 			Thread.sleep(timeout_interval);
-
 		}
 
 		catch (InterruptedException ex) {
-
 			System.out.println(ex);
-
 		}
 
 	}
@@ -205,17 +163,5 @@ public class UDPServer extends Observable implements Runnable {
 	public void setTimeout_interval(int timeout_interval) {
 		this.timeout_interval = timeout_interval;
 	}
-
-	/*
-	 * public static void main(String[] args) {
-	 * 
-	 * UDPServer server = new UDPServer();
-	 * 
-	 * Thread t = new Thread(server);
-	 * 
-	 * t.start();
-	 * 
-	 * }
-	 */
 
 }

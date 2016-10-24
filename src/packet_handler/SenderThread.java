@@ -93,7 +93,8 @@ class SenderThread extends Thread {
 
 					//System.out.println("Client: End of file reached");
 					
-					udpClient.setOutputMessage("Client: End of file reached");
+					udpClient.setOutputMessage("Client: End of file reached; " + handler.getBytesSent() + 
+							" bytes sent");
 					// this.halt();
 
 				}
