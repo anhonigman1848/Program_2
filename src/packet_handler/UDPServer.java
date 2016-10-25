@@ -76,9 +76,23 @@ public class UDPServer extends Observable implements Runnable {
 		// convert DatagramPacket to Packet
 		Packet received = server_handler.dgpacketToPacket(dgpacket);
 
+		try {
+			Thread.sleep(timeout_interval);
+		}
+
+		catch (InterruptedException ex) {
+			System.out.println(ex);
+		}
+
 		// check for corrupted packet
 		if (received.getCksum() == 1) {
 			setOutputMessage("Server received and discarded corrupted packet " + received.getSeqno());
+		}
+
+		// check for first packet
+		else if (received.getSeqno() == 0) {
+			String name = server_handler.setFile_name(received);
+			setOutputMessage("Server received first packet of " + name);
 		}
 
 		// check for end of file packet
@@ -110,14 +124,6 @@ public class UDPServer extends Observable implements Runnable {
 				setOutputMessage("Server sending ack no " + ackno);
 				socket.send(outgoing);
 			}
-		}
-
-		try {
-			Thread.sleep(timeout_interval);
-		}
-
-		catch (InterruptedException ex) {
-			System.out.println(ex);
 		}
 
 	}

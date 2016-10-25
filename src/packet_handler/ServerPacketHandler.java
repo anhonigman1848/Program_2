@@ -9,10 +9,13 @@ import java.net.*;
 public class ServerPacketHandler {
 
 	UDPServer udpServer;
-	
+
 	// store incoming packets in ArrayList
 	private ArrayList<byte[]> buffer;
-	
+
+	// store name of file to write
+	private String file_name;
+
 	// keep track of how many bytes are in buffer
 	private int bytes_stored;
 
@@ -25,31 +28,31 @@ public class ServerPacketHandler {
 
 	// packet size, should be the same for all classes
 	private int packet_size;
-	
+
 	// probability that cksum of any Packet will be corrupted
 	private double corruption_prob;
-	
+
 	// probability that a Packet will fail on sending
 	private double failure_prob;
 
 	public ServerPacketHandler(int packet_size, double failure_prob, double corruption_prob, UDPServer udpServer) {
-		
+
 		this.packet_size = packet_size;
-		
+
 		this.corruption_prob = corruption_prob;
-		
+
 		this.failure_prob = failure_prob;
 
 		this.window = new Packet[1];
-		
-		this.lastPacketReceived = 0;
-	
+
+		this.lastPacketReceived = -1;
+
 		this.udpServer = udpServer;
-		
+
 		this.buffer = new ArrayList<byte[]>();
-		
+
 		this.bytes_stored = 0;
-		
+
 	}
 
 	public int getPacketSize() {
@@ -63,39 +66,47 @@ public class ServerPacketHandler {
 	public synchronized int getLastPacketReceived() {
 		return (lastPacketReceived);
 	}
-	
+
 	// check for failure to send ack Packet
 	public boolean failureCheck() {
 		if (Math.random() < failure_prob) {
-			return(true);
+			return (true);
+		} else {
+			return (false);
 		}
-		else {
-			return(false);
-		}
-		
+
 	}
 
 	public int getBufferSize() {
 		return (buffer.size());
 	}
-	
+
+	public String setFile_name(Packet packet) {
+
+		setLastPacketReceived(packet.getSeqno());
+		byte[] name_in_bytes = packet.getData();
+		String name = new String(name_in_bytes);
+		this.file_name = "COPY_OF_" + name;
+		return (name);
+
+	}
+
 	// put received Packet data into buffer
 	public void addToBuffer(Packet packet) {
-		
-		if(packet.getSeqno() > lastPacketReceived) {
-			
+
+		if (packet.getSeqno() > lastPacketReceived) {
+
 			setLastPacketReceived(packet.getSeqno());
 			byte[] data = packet.getData();
 			buffer.add(data);
 			bytes_stored += data.length;
-			
+
 		}
-		
+
 	}
 
 	// convert a Packet to a DatagramPacket for sending over UDP
-	public DatagramPacket packetToDGPacket(Packet newPacket,
-			InetAddress server, int port) {
+	public DatagramPacket packetToDGPacket(Packet newPacket, InetAddress server, int port) {
 
 		Packet input_p = newPacket;
 
@@ -117,8 +128,7 @@ public class ServerPacketHandler {
 
 		}
 
-		DatagramPacket output_dg = new DatagramPacket(temp, temp.length,
-				server, port);
+		DatagramPacket output_dg = new DatagramPacket(temp, temp.length, server, port);
 
 		return (output_dg);
 
@@ -174,15 +184,16 @@ public class ServerPacketHandler {
 		int ackno = buf.getInt();
 
 		// if length 8, this is an ack Packet, so don't worry about data
-		// Server shouldn't be getting ack Packets - this block may not be needed
+		// Server shouldn't be getting ack Packets - this block may not be
+		// needed
 		if (length == 8) {
 
 			Packet output_p = new Packet(ackno);
 
 			return (output_p);
 
-		} 
-		
+		}
+
 		// otherwise, this is a data Packet, so get seqno and data
 		// Server should only be getting data packets
 		else {

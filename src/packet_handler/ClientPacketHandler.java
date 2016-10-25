@@ -8,12 +8,12 @@ import java.nio.ByteBuffer;
 import java.net.*;
 
 public class ClientPacketHandler {
-	
+
 	UDPClient udpClient;
-	
+
 	// store packets in BlockingQueue for Thread support
-	private BlockingQueue<Packet> buffer = new ArrayBlockingQueue<Packet>(1024);
-	
+	private BlockingQueue<Packet> buffer;
+
 	// keep track of how many bytes sent
 	private int bytes_sent;
 
@@ -23,29 +23,29 @@ public class ClientPacketHandler {
 	private volatile int lastAckReceived;
 
 	private int packet_size;
-	
+
 	// probability that cksum of any Packet will be corrupted
 	private double corruption_prob;
-	
+
 	// probability that a Packet will fail on sending
 	private double failure_prob;
 
 	public ClientPacketHandler(int packet_size, double corruption_prob, double failure_prob, UDPClient udpClient) {
-		
+
 		this.packet_size = packet_size;
-		
+
 		this.corruption_prob = corruption_prob;
-		
+
 		this.failure_prob = failure_prob;
 
 		this.window = new Packet[1];
-		
+
 		this.lastAckReceived = 1;
-	
+
 		this.udpClient = udpClient;
-		
+
 		this.bytes_sent = 0;
-		
+
 	}
 
 	public int getPacketSize() {
@@ -71,24 +71,24 @@ public class ClientPacketHandler {
 		return (lastAckReceived);
 
 	}
-	
+
 	public boolean failureCheck() {
-		
+
 		if (Math.random() < failure_prob) {
-			
-			//System.out.println("Failed to send packet!");
+
+			// System.out.println("Failed to send packet!");
 			udpClient.setOutputMessage("Failed to send packet, no response from Server!");
 
-			return(true);
-			
+			return (true);
+
 		}
-		
+
 		else {
-			
-			return(false);
-			
+
+			return (false);
+
 		}
-		
+
 	}
 
 	public byte[] convertFile(File passedFile) {
@@ -121,9 +121,19 @@ public class ClientPacketHandler {
 
 	}
 
-	public void makePackets(byte[] data) {
+	public void makePackets(byte[] data, Packet first_packet) {
 
 		int seqno = 1;
+
+		int queue_size = data.length / packet_size + 5;
+
+		buffer = new ArrayBlockingQueue<Packet>(queue_size);
+
+		try {
+			buffer.put(first_packet);
+		} catch (InterruptedException ex) {
+
+		}
 
 		try {
 
@@ -187,23 +197,22 @@ public class ClientPacketHandler {
 			else {
 
 				Packet nextPacket = buffer.take();
-				
+
 				bytes_sent += nextPacket.getData().length;
 
 				// save "clean" copy of nextPacket in window
-				Packet tempPacket = new Packet(nextPacket.getSeqno(),
-						nextPacket.getData());
-				
+				Packet tempPacket = new Packet(nextPacket.getSeqno(), nextPacket.getData());
+
 				window[0] = tempPacket;
-				
+
 				if (Math.random() < corruption_prob && (tempPacket.getSeqno() > 0)) {
-					
+
 					nextPacket.setCksum((short) 1);
-					
-					//System.out.println("Sending Corrupted packet! " + nextPacket.getSeqno());
+
+					// System.out.println("Sending Corrupted packet! " +
+					// nextPacket.getSeqno());
 					udpClient.setOutputMessage("Sending Corrupted packet! " + nextPacket.getSeqno());
-					
-					
+
 				}
 
 				return (nextPacket);
@@ -248,8 +257,7 @@ public class ClientPacketHandler {
 
 	}
 
-	public DatagramPacket packetToDGPacket(Packet newPacket,
-			InetAddress server, int port) {
+	public DatagramPacket packetToDGPacket(Packet newPacket, InetAddress server, int port) {
 
 		Packet input_p = newPacket;
 
@@ -271,8 +279,7 @@ public class ClientPacketHandler {
 
 		}
 
-		DatagramPacket output_dg = new DatagramPacket(temp, temp.length,
-				server, port);
+		DatagramPacket output_dg = new DatagramPacket(temp, temp.length, server, port);
 
 		return (output_dg);
 

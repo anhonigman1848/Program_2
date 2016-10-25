@@ -48,12 +48,17 @@ class SenderThread extends Thread {
 	@Override
 	public void run() {
 
-		//File testfile = new File("testfile.txt");
-		File testfile = udpClient.getSelectedFile();
+		File file = udpClient.getSelectedFile();
+		
+		String file_name = file.getName();
+		
+		byte[] name_in_bytes = file_name.getBytes();
+		
+		Packet first_packet = new Packet(0, name_in_bytes);
 
-		byte[] test = handler.convertFile(testfile);
+		byte[] file_data = handler.convertFile(file);
 
-		handler.makePackets(test);
+		handler.makePackets(file_data, first_packet);
 
 		try {
 
