@@ -92,6 +92,19 @@ public class UDPServer extends Observable implements Runnable {
 		// check for first packet
 		else if (received.getSeqno() == 0) {
 			String name = server_handler.setFile_name(received);
+			
+			//Split up name and extension, so we can modify name once saved
+			String[] strArray = name.split("\\.");
+			
+			String fileName = strArray[0];
+			String fileExtension = "." + strArray[1];
+			
+			//System.out.println(fileName);
+			//System.out.println(fileExtension);
+			
+			
+			
+			
 			setOutputMessage("Server received first packet of " + name);
 		}
 
