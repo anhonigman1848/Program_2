@@ -127,44 +127,45 @@ public class ClientGui extends JFrame implements Observer {
 
 		JLabel lblPacketLoss = new JLabel("Packet Loss (%):");
 		lblPacketLoss.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblPacketLoss.setBounds(306, 87, 120, 14);
+		lblPacketLoss.setBounds(274, 87, 120, 14);
 		contentPane.add(lblPacketLoss);
 
 		packetLossTextField = new JTextField();
-		packetLossTextField.setBounds(427, 84, 86, 20);
+		packetLossTextField.setBounds(395, 84, 86, 20);
 		packetLossTextField.setText("0");
 		contentPane.add(packetLossTextField);
 		packetLossTextField.setColumns(10);
 
 		JLabel lblCorruption = new JLabel("Corruption (%):");
 		lblCorruption.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblCorruption.setBounds(306, 114, 120, 14);
+		lblCorruption.setBounds(274, 114, 120, 14);
 		contentPane.add(lblCorruption);
 
 		corruptionTextField = new JTextField();
-		corruptionTextField.setBounds(427, 112, 86, 20);
+		corruptionTextField.setBounds(395, 112, 86, 20);
 		corruptionTextField.setText("0");
 		contentPane.add(corruptionTextField);
 		corruptionTextField.setColumns(10);
 
 		JLabel lblPacketSize = new JLabel("Packet Size:");
 		lblPacketSize.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblPacketSize.setBounds(306, 29, 120, 14);
+		lblPacketSize.setBounds(274, 29, 120, 14);
 		contentPane.add(lblPacketSize);
 
 		packetSizeTextField = new JTextField();
-		packetSizeTextField.setBounds(427, 26, 86, 20);
+		packetSizeTextField.setToolTipText("Less than 32755 bytes");
+		packetSizeTextField.setBounds(395, 26, 86, 20);
 		packetSizeTextField.setText("1024");
 		contentPane.add(packetSizeTextField);
 		packetSizeTextField.setColumns(10);
 
 		JLabel lblClientTimeoutms = new JLabel("Client Timeout (ms):");
 		lblClientTimeoutms.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblClientTimeoutms.setBounds(306, 58, 120, 14);
+		lblClientTimeoutms.setBounds(274, 58, 120, 14);
 		contentPane.add(lblClientTimeoutms);
 
 		timeoutTextField = new JTextField();
-		timeoutTextField.setBounds(427, 55, 86, 20);
+		timeoutTextField.setBounds(395, 55, 86, 20);
 		timeoutTextField.setText("1000");
 		contentPane.add(timeoutTextField);
 		timeoutTextField.setColumns(10);
@@ -198,5 +199,4 @@ public class ClientGui extends JFrame implements Observer {
 		scrollPane.setScrollPosition(0, feedBackArea.getDocument().getLength());
 
 	}
-
 }
