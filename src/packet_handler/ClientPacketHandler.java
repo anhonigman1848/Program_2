@@ -47,7 +47,7 @@ public class ClientPacketHandler {
 
 		this.window = new Packet[1];
 
-		this.lastAckReceived = 1;
+		this.lastAckReceived = 0;
 
 		this.udpClient = udpClient;
 
@@ -242,7 +242,8 @@ public class ClientPacketHandler {
 				bytes_sent += nextPacket.getData().length;
 
 				// save "clean" copy of nextPacket in window
-				Packet tempPacket = new Packet(nextPacket.getSeqno(), nextPacket.getData());
+				Packet tempPacket = new Packet(nextPacket.getSeqno(),
+						nextPacket.getAckno(),nextPacket.getData());
 
 				window[0] = tempPacket;
 

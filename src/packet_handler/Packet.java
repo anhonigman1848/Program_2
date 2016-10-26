@@ -34,18 +34,18 @@ public class Packet {
 
 
 	/**
-	 * Constructor for first packet
+	 * Constructor for packet incl ackno
 	 * @param seqno
-	 * @param file_length
+	 * @param ackno
 	 * @param data
 	 */
-	public Packet(int seqno, int file_length, byte[] data) {
+	public Packet(int seqno, int ackno, byte[] data) {
 
 		this.cksum = 0;
 
 		this.seqno = seqno;
 
-		this.ackno = file_length;
+		this.ackno = ackno;
 
 		this.data = data;
 

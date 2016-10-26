@@ -18,6 +18,8 @@ public class UDPServer extends Observable implements Runnable {
 
 	private double corruption_prob;
 
+	private boolean firstPacketReceived = false;
+
 	private volatile boolean isShutDown = false;
 
 	private String outputMessage = "";
@@ -104,16 +106,22 @@ public class UDPServer extends Observable implements Runnable {
 		// check for corrupted packet
 		if (received.getCksum() == 1) {
 			setOutputMessage("Server received and discarded corrupted packet " + received.getSeqno());
+			return;
 		}
 
-		// check for first packet
+		// check for first packet, received for the first time
 		else if (received.getSeqno() == 0) {
-			byte[] name_in_bytes = received.getData();
-			String name = new String(name_in_bytes);
-			server_handler.setFile_name(received);
-			int length = received.getAckno();
-			server_handler.setFile_length(length);
-			setOutputMessage("Server received packet 0 of " + name);
+			if (!firstPacketReceived) {
+				byte[] name_in_bytes = received.getData();
+				String name = new String(name_in_bytes);
+				server_handler.setFile_name(received);
+				int length = received.getAckno();
+				server_handler.setFile_length(length);
+				setOutputMessage("Server received packet 0 of " + name);
+				firstPacketReceived = true;
+			} else {
+				setOutputMessage("Server received duplicate packet 0");				
+			}
 
 		}
 
@@ -127,6 +135,14 @@ public class UDPServer extends Observable implements Runnable {
 		else {
 			setOutputMessage("Server received packet no " + received.getSeqno());
 			server_handler.addToBuffer(received);
+		}
+
+		try {
+			Thread.sleep(timeout_interval / 3);
+		}
+
+		catch (InterruptedException ex) {
+			System.out.println(ex);
 		}
 
 		// sending ack
