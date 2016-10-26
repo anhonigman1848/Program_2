@@ -11,46 +11,30 @@ public class UDPClient extends Observable implements Runnable {
 	protected File selectedFile;
 
 	private String outputMessage = "";
-	
+
 	private final static int PORT = 7;
-	
+
 	private int packet_size;
-	
+
 	private int timeout_interval;
-	
+
 	private double corruption_prob;
-	
+
 	private double failure_prob;
-	
-	public void run(){	
-		//Create the GUI for the client
-		//clientGui = new ClientGui();
-		//clientGui.setVisible(true);
-		
+
+
+	public void run() {
 
 		String hostname = "localhost";
-		
-		/*PacketHandler server_handler = new PacketHandler(
-				packet_size, corruption_prob, failure_prob);*/
-
-		
-		//UDPServer server = new UDPServer(PORT, server_handler);
-		
-
-		//Thread t = new Thread(server);
-
-		//t.start();
-
-		//if (args.length > 0) hostname = args[0];
 
 		try {
 
 			InetAddress ia = InetAddress.getByName(hostname);
 
 			DatagramSocket socket = new DatagramSocket();
-						
-			ClientPacketHandler client_handler = new ClientPacketHandler(
-					packet_size, corruption_prob, failure_prob, this);
+
+			ClientPacketHandler client_handler = new ClientPacketHandler(packet_size, corruption_prob, failure_prob,
+					this);
 
 			SenderThread sender = new SenderThread(socket, ia, PORT, client_handler, this);
 
@@ -60,69 +44,106 @@ public class UDPClient extends Observable implements Runnable {
 
 			receiver.start();
 
-		} 
-		
-		catch (UnknownHostException ex) { 
-		  
-		  System.err.println(ex);
+		}
 
-		} 
-		
-		catch (SocketException ex) { 
-		  
-		  System.err.println(ex);
+		catch (UnknownHostException ex) {
+
+			System.err.println(ex);
+
+		}
+
+		catch (SocketException ex) {
+
+			System.err.println(ex);
 
 		}
 
 	}
 
+	/**
+	 * @return packet_size
+	 */
 	public int getPacket_size() {
 		return packet_size;
 	}
 
+	/**
+	 * @param packet_size
+	 */
 	public void setPacket_size(int packet_size) {
 		this.packet_size = packet_size;
 	}
 
+	/**
+	 * @return timeout_interval
+	 */
 	public int getTimeout_interval() {
 		return timeout_interval;
 	}
 
+	/**
+	 * @param timeout_interval
+	 */
 	public void setTimeout_interval(int timeout_interval) {
 		this.timeout_interval = timeout_interval;
 	}
 
+	/**
+	 * @return corruption_prob
+	 */
 	public double getCorruption_prob() {
 		return corruption_prob;
 	}
 
+	/**
+	 * @param corruption_prob
+	 */
 	public void setCorruption_prob(double corruption_prob) {
 		this.corruption_prob = corruption_prob;
 	}
 
+	/**
+	 * @return failure_prob
+	 */
 	public double getFailure_prob() {
 		return failure_prob;
 	}
 
+	/**
+	 * @param failure_prob
+	 */
 	public void setFailure_prob(double failure_prob) {
 		this.failure_prob = failure_prob;
 	}
 
+	/**
+	 * @return outputMessage
+	 */
 	public String getOutputMessage() {
 		return outputMessage;
 	}
 
+	/**
+	 * Sets the message and notifies Observers
+	 * @param outputMessage
+	 */
 	public void setOutputMessage(String outputMessage) {
 		this.outputMessage = outputMessage;
 		setChanged();
 		notifyObservers(outputMessage);
-		
+
 	}
-	
+
+	/**
+	 * @return selectedFile
+	 */
 	public File getSelectedFile() {
 		return selectedFile;
 	}
 
+	/**
+	 * @param selectedFile
+	 */
 	public void setSelectedFile(File selectedFile) {
 		this.selectedFile = selectedFile;
 	}

@@ -30,6 +30,13 @@ public class ClientPacketHandler {
 	// probability that a Packet will fail on sending
 	private double failure_prob;
 
+	/**
+	 * Constructor
+	 * @param packet_size
+	 * @param corruption_prob
+	 * @param failure_prob
+	 * @param udpClient
+	 */
 	public ClientPacketHandler(int packet_size, double corruption_prob, double failure_prob, UDPClient udpClient) {
 
 		this.packet_size = packet_size;
@@ -48,30 +55,47 @@ public class ClientPacketHandler {
 
 	}
 
+	/**
+	 * @return packet_size
+	 */
 	public int getPacketSize() {
 
 		return (packet_size);
 
 	}
 
+	/**
+	 * @return bytes_sent
+	 */
 	public int getBytesSent() {
 
 		return (bytes_sent);
 
 	}
 
+	/**
+	 * Set the Acknowledgment
+	 * @param ackno
+	 */
 	public synchronized void setLastAckReceived(int ackno) {
 
 		this.lastAckReceived = ackno;
 
 	}
 
+	/**
+	 * @return laskAckReceived
+	 */
 	public synchronized int getLastAckReceived() {
 
 		return (lastAckReceived);
 
 	}
 
+	/**
+	 * Method to simulate failures
+	 * @return boolean
+	 */
 	public boolean failureCheck() {
 
 		if (Math.random() < failure_prob) {
@@ -91,6 +115,11 @@ public class ClientPacketHandler {
 
 	}
 
+	/**
+	 * Converts file to byte array
+	 * @param passedFile
+	 * @return data
+	 */
 	public byte[] convertFile(File passedFile) {
 
 		FileInputStream input = null;
@@ -121,6 +150,11 @@ public class ClientPacketHandler {
 
 	}
 
+	/**
+	 * Makes byte array into packets
+	 * @param data
+	 * @param first_packet
+	 */
 	public void makePackets(byte[] data, Packet first_packet) {
 
 		int seqno = 1;
@@ -175,12 +209,18 @@ public class ClientPacketHandler {
 
 	}
 
+	/**
+	 * @return buffer size
+	 */
 	public int getBufferSize() {
 
 		return (buffer.size());
 
 	}
 
+	/**
+	 * @return nextPacket
+	 */
 	public Packet nextPacket() {
 
 		try {
@@ -197,7 +237,7 @@ public class ClientPacketHandler {
 				Packet nextPacket = buffer.take();
 
 				bytes_sent += nextPacket.getData().length;
-				
+
 				// save "clean" copy of nextPacket in window
 				Packet tempPacket = new Packet(nextPacket.getSeqno(), nextPacket.getData());
 
@@ -207,8 +247,6 @@ public class ClientPacketHandler {
 
 					nextPacket.setCksum((short) 1);
 
-					// System.out.println("Sending Corrupted packet! " +
-					// nextPacket.getSeqno());
 					udpClient.setOutputMessage("Sending Corrupted packet! " + nextPacket.getSeqno());
 
 				}
@@ -229,6 +267,9 @@ public class ClientPacketHandler {
 
 	}
 
+	/**
+	 * @return nextPacket Sequence number
+	 */
 	public int getNextPacketSeqno() {
 
 		try {
@@ -255,6 +296,13 @@ public class ClientPacketHandler {
 
 	}
 
+	/**
+	 * Converts Packet to Datagram Packet
+	 * @param newPacket
+	 * @param server
+	 * @param port
+	 * @return output datagram
+	 */
 	public DatagramPacket packetToDGPacket(Packet newPacket, InetAddress server, int port) {
 
 		Packet input_p = newPacket;
@@ -274,7 +322,7 @@ public class ClientPacketHandler {
 			buf.putInt(input_p.getSeqno());
 
 			buf.put(input_p.getData());
-			
+
 		}
 
 		DatagramPacket output_dg = new DatagramPacket(temp, temp.length, server, port);
@@ -283,6 +331,11 @@ public class ClientPacketHandler {
 
 	}
 
+	/**
+	 * Converts Packet to Datagram Packet
+	 * @param newPacket
+	 * @return output datagram
+	 */
 	public DatagramPacket packetToDGPacket(Packet newPacket) {
 
 		Packet input_p = newPacket;
@@ -317,6 +370,11 @@ public class ClientPacketHandler {
 				+ ", failure_prob=" + failure_prob + "]";
 	}
 
+	/**
+	 * Converts Datagram packet to Packet
+	 * @param dgPacket
+	 * @return output packet
+	 */
 	public Packet dgpacketToPacket(DatagramPacket dgPacket) {
 
 		DatagramPacket input_dg = dgPacket;

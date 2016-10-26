@@ -7,9 +7,9 @@ import java.net.*;
 class ReceiverThread extends Thread {
 
 	UDPClient udpClient;
-	
+
 	private DatagramSocket socket;
-	
+
 	private int packet_size;
 
 	private volatile boolean stopped = false;
@@ -21,18 +21,22 @@ class ReceiverThread extends Thread {
 		this.socket = socket;
 
 		this.handler = handler;
-		
+
 		this.udpClient = udpClient;
-		
+
 		this.packet_size = udpClient.getPacket_size();
 
 	}
 
+	/**
+	 * Stop the Thread
+	 */
 	public void halt() {
 
 		this.stopped = true;
 
 	}
+
 
 	@Override
 	public void run() {
@@ -56,10 +60,7 @@ class ReceiverThread extends Thread {
 
 				if (ackno == 0) {
 
-					
-					//System.out.println("Client received EOF ackno");
 					udpClient.setOutputMessage("Client recieved EOF ackno");
-					// this.halt();
 
 				}
 
@@ -67,8 +68,6 @@ class ReceiverThread extends Thread {
 
 					if (ackno > handler.getLastAckReceived()) {
 
-						//System.out.println("Client received ack no " + ackno);
-						
 						udpClient.setOutputMessage("Client received ack no " + ackno);
 
 						handler.setLastAckReceived(ackno);

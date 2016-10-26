@@ -1,104 +1,136 @@
 package packet_handler;
 
 public class Packet {
-  
-  short cksum;
-  
-  short length;
-  
-  int ackno;
-  
-  int seqno;
-  
-  byte[] data;
-  
-  // constructor for Data packet
+
+	short cksum;
+
+	short length;
+
+	int ackno;
+
+	int seqno;
+
+	byte[] data;
+
+
+	/**
+	 * Constructor
+	 * @param seqno
+	 * @param data
+	 */
 	public Packet(int seqno, byte[] data) {
-	  
-	  this.cksum = 0;
-	  
-	  this.seqno = seqno;
-	  
-	  this.ackno = seqno + 1;
 
-	  this.data = data;
-		
-	  this.length = (short) (12 + data.length);
-	  
+		this.cksum = 0;
+
+		this.seqno = seqno;
+
+		this.ackno = seqno + 1;
+
+		this.data = data;
+
+		this.length = (short) (12 + data.length);
+
 	}
 
-	  // constructor for first packet
-		public Packet(int seqno, int file_length, byte[] data) {
-		  
-		  this.cksum = 0;
-		  
-		  this.seqno = seqno;
-		  
-		  this.ackno = file_length;
 
-		  this.data = data;
-			
-		  this.length = (short) (12 + data.length);
-		  
-		}
+	/**
+	 * Constructor for first packet
+	 * @param seqno
+	 * @param file_length
+	 * @param data
+	 */
+	public Packet(int seqno, int file_length, byte[] data) {
 
-  // constructor for Ack packet
+		this.cksum = 0;
+
+		this.seqno = seqno;
+
+		this.ackno = file_length;
+
+		this.data = data;
+
+		this.length = (short) (12 + data.length);
+
+	}
+
+	/**
+	 * Constructor for Ack Packet
+	 * @param ackno
+	 */
 	public Packet(int ackno) {
-	  
-	  this.cksum = 0;
-	  
-	  this.length = 8;
-	  
-	  this.ackno = ackno;
-	  
+
+		this.cksum = 0;
+
+		this.length = 8;
+
+		this.ackno = ackno;
+
 	}
 
-	// getter for cksum
-	public short getCksum() {
-	  
-		return cksum;
-		
-	}
-
-	// getter for length
-	public short getLength() {
-	  
-		return length;
-		
-	}
-
-	// getter for seqno
-	public int getSeqno() {
-	  
-		return seqno;
-		
-	}
-
-	// getter for ackno
-	public int getAckno() {
-	  
-		return ackno;
-		
-	}
-
-	// getter for data
-	public byte[] getData() {
-	  
-		return data;
-		
-	}
 	
-	// setter for chksum
+	/**
+	 * @return cksum
+	 */
+	public short getCksum() {
+
+		return cksum;
+
+	}
+
+
+	/**
+	 * @return length
+	 */
+	public short getLength() {
+
+		return length;
+
+	}
+
+
+	/**
+	 * Get sequence number
+	 * @return seqno
+	 */
+	public int getSeqno() {
+
+		return seqno;
+
+	}
+
+
+	/**
+	 * Get Acknowledgment number
+	 * @return ackno
+	 */
+	public int getAckno() {
+
+		return ackno;
+
+	}
+
+	
+	/**
+	 * @return data
+	 */
+	public byte[] getData() {
+
+		return data;
+
+	}
+
+	/**
+	 * @param newCksum
+	 */
 	public void setCksum(short newCksum) {
-	  
-	  cksum = newCksum;
-	  
+
+		cksum = newCksum;
+
 	}
 
 	// toString method
 	public String toString() {
-		return "Packet number " + seqno + " [data="
-				+ (data != null ? arrayToString(data, data.length) : null)
+		return "Packet number " + seqno + " [data=" + (data != null ? arrayToString(data, data.length) : null)
 				+ "] ackno " + ackno + " cksum " + cksum + " length " + length;
 	}
 
@@ -114,5 +146,5 @@ public class Packet {
 		buffer.append("]");
 		return buffer.toString();
 	}
-	
+
 }

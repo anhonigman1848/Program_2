@@ -36,6 +36,13 @@ public class ServerPacketHandler {
 	// probability that a Packet will fail on sending
 	private double failure_prob;
 
+	/**
+	 * Constructor
+	 * @param packet_size
+	 * @param failure_prob
+	 * @param corruption_prob
+	 * @param udpServer
+	 */
 	public ServerPacketHandler(int packet_size, double failure_prob, double corruption_prob, UDPServer udpServer) {
 
 		this.packet_size = packet_size;
@@ -54,19 +61,32 @@ public class ServerPacketHandler {
 
 	}
 
+	/**
+	 * @return packet_size
+	 */
 	public int getPacketSize() {
 		return (packet_size);
 	}
 
+	/**
+	 * @param seqno
+	 */
 	public void setLastPacketReceived(int seqno) {
 		this.lastPacketReceived = seqno;
 	}
 
+	/**
+	 * @return lastPacketReceived
+	 */
 	public synchronized int getLastPacketReceived() {
 		return (lastPacketReceived);
 	}
 
-	// check for failure to send ack Packet
+
+	/**
+	 * Check for failure to send ack Packet
+	 * @return boolean
+	 */
 	public boolean failureCheck() {
 		if (Math.random() < failure_prob) {
 			return (true);
@@ -76,10 +96,16 @@ public class ServerPacketHandler {
 
 	}
 
+	/**
+	 * @return buffer.length
+	 */
 	public int getBufferLength() {
 		return (buffer.length);
 	}
 
+	/**
+	 * @param packet
+	 */
 	public void setFile_name(Packet packet) {
 
 		setLastPacketReceived(packet.getSeqno());
@@ -89,13 +115,19 @@ public class ServerPacketHandler {
 
 	}
 
+	/**
+	 * @param length
+	 */
 	public void setFile_length(int length) {
 		this.file_length = length;
 		System.out.println("Buffer length " + file_length);
 		buffer = new byte[file_length];
 	}
 
-	// put received Packet data into buffer
+	/**
+	 * Put received Packet data into buffer
+	 * @param packet
+	 */
 	public void addToBuffer(Packet packet) {
 
 		if (packet.getSeqno() > lastPacketReceived) {
@@ -109,7 +141,9 @@ public class ServerPacketHandler {
 
 	}
 	
-	// this is where it should write to new file
+	/**
+	 * Write to new file 
+	 */
 	public void outputFile() {
 		
 		try {
@@ -121,14 +155,24 @@ public class ServerPacketHandler {
 			output_f.write(buffer);
 			output_f.flush();
 			output_f.close();
+			
 
 		} catch (Exception ex) {
 			System.out.println("Error writing file");
 
 		}
+		
+	
 	}
 
-	// convert a Packet to a DatagramPacket for sending over UDP
+
+	/**
+	 * Convert a Packet to a DatagramPacket for sending over UDP
+	 * @param newPacket
+	 * @param server
+	 * @param port
+	 * @return output datagram
+	 */
 	public DatagramPacket packetToDGPacket(Packet newPacket, InetAddress server, int port) {
 
 		Packet input_p = newPacket;
@@ -157,12 +201,19 @@ public class ServerPacketHandler {
 
 	}
 
+	/**
+	 * @return bytes_stored
+	 */
 	public int getBytes_stored() {
 		return bytes_stored;
 	}
 
-	// convert Packet to DatagramPacket, without IP address or port
-	// not sure if this method is needed
+
+	/**
+	 * Convert Packet to DatagramPacket, without IP address or port
+	 * @param newPacket
+	 * @return output datagram
+	 */
 	public DatagramPacket packetToDGPacket(Packet newPacket) {
 
 		Packet input_p = newPacket;
@@ -191,12 +242,14 @@ public class ServerPacketHandler {
 
 	}
 
-	// convert DatagramPacket to Packet, to read fields
+	/**
+	 * Convert DatagramPacket to Packet, to read fields
+	 * @param dgPacket
+	 * @return output packet
+	 */
 	public Packet dgpacketToPacket(DatagramPacket dgPacket) {
 
 		DatagramPacket input_dg = dgPacket;
-
-		// System.out.println("Received DG " + input_dg.getLength() + " bytes");
 
 		int data_length = input_dg.getLength() - 12;
 
@@ -211,8 +264,7 @@ public class ServerPacketHandler {
 		int ackno = buf.getInt();
 		
 		// if length 8, this is an ack Packet, so don't worry about data
-		// Server shouldn't be getting ack Packets - this block may not be
-		// needed
+		// Server shouldn't be getting ack Packets
 		if (length == 8) {
 
 			Packet output_p = new Packet(ackno);

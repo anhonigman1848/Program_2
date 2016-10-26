@@ -24,14 +24,18 @@ public class UDPServer extends Observable implements Runnable {
 
 	ServerPacketHandler server_handler;
 
+	/**
+	 * @param port
+	 * @param serverGui
+	 */
 	public UDPServer(int port, ServerGui serverGui) {
 
 		this.port = port;
 
-		// FIXME probably shouldnt need to pass
 		this.serverGui = serverGui;
 
 	}
+
 
 	@Override
 	public void run() {
@@ -43,7 +47,9 @@ public class UDPServer extends Observable implements Runnable {
 			server_handler = new ServerPacketHandler(packet_size, failure_prob, corruption_prob, this);
 
 			while (true) {
-				if (isShutDown)	{return;}
+				if (isShutDown) {
+					return;
+				}
 
 				DatagramPacket incoming = new DatagramPacket(buffer, buffer.length);
 
@@ -53,7 +59,9 @@ public class UDPServer extends Observable implements Runnable {
 				}
 
 				catch (SocketTimeoutException ex) {
-					if (isShutDown) {return;}
+					if (isShutDown) {
+						return;
+					}
 				}
 
 				catch (IOException ex) {
@@ -67,17 +75,26 @@ public class UDPServer extends Observable implements Runnable {
 		}
 	}
 
+	/**
+	 * Stops the Server
+	 */
 	public void shutDown() {
 		this.isShutDown = true;
 	}
 
+	/**
+	 * Server Response
+	 * @param socket
+	 * @param dgpacket
+	 * @throws IOException
+	 */
 	public void respond(DatagramSocket socket, DatagramPacket dgpacket) throws IOException {
 
 		// convert DatagramPacket to Packet
 		Packet received = server_handler.dgpacketToPacket(dgpacket);
-		
+
 		try {
-			Thread.sleep(timeout_interval/3);
+			Thread.sleep(timeout_interval / 3);
 		}
 
 		catch (InterruptedException ex) {
@@ -139,44 +156,75 @@ public class UDPServer extends Observable implements Runnable {
 
 	}
 
+	/**
+	 * @return outputMessage
+	 */
 	public String getOutputMessage() {
 		return outputMessage;
 	}
 
+	/**
+	 * Sets the message and notifies Observers
+	 * @param outputMessage
+	 */
 	public void setOutputMessage(String outputMessage) {
 		this.outputMessage = outputMessage;
 		setChanged();
 		notifyObservers(outputMessage);
 	}
 
+	/**
+	 * @return corruption_prob
+	 */
 	public double getCorruption_prob() {
 		return corruption_prob;
 	}
 
+	/**
+	 * @param corruption_prob
+	 */
 	public void setCorruption_prob(double corruption_prob) {
 		this.corruption_prob = corruption_prob;
 	}
 
+	/**
+	 * @return failure_prob
+	 */
 	public double getFailure_prob() {
 		return failure_prob;
 	}
 
+	/**
+	 * @param failure_prob
+	 */
 	public void setFailure_prob(double failure_prob) {
 		this.failure_prob = failure_prob;
 	}
 
+	/**
+	 * @return packet_size
+	 */
 	public int getPacket_size() {
 		return packet_size;
 	}
 
+	/**
+	 * @param packet_size
+	 */
 	public void setPacket_size(int packet_size) {
 		this.packet_size = packet_size;
 	}
 
+	/**
+	 * @return timeout_interval
+	 */
 	public int getTimeout_interval() {
 		return timeout_interval;
 	}
 
+	/**
+	 * @param timeout_interval
+	 */
 	public void setTimeout_interval(int timeout_interval) {
 		this.timeout_interval = timeout_interval;
 	}

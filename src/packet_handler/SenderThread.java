@@ -39,6 +39,9 @@ class SenderThread extends Thread {
 
 	}
 
+	/**
+	 * Stop the Thread
+	 */
 	public void halt() {
 
 		this.stopped = true;
@@ -76,9 +79,6 @@ class SenderThread extends Thread {
 
 				if (!handler.failureCheck()) {
 
-					/*System.out.println("Client sending packet no "
-							+ next.getSeqno());*/
-					
 					udpClient.setOutputMessage("Client sending packet no " + next.getSeqno());
 					socket.send(output);
 
@@ -97,12 +97,10 @@ class SenderThread extends Thread {
 				}
 
 				if (next.getSeqno() < 0) {
-
-					//System.out.println("Client: End of file reached");
 					
 					udpClient.setOutputMessage("Client: End of file reached; " + handler.getBytesSent() + 
 							" bytes sent");
-					// this.halt();
+					
 
 				}
 
