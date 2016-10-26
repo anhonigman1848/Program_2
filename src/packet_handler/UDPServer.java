@@ -75,9 +75,9 @@ public class UDPServer extends Observable implements Runnable {
 
 		// convert DatagramPacket to Packet
 		Packet received = server_handler.dgpacketToPacket(dgpacket);
-
+		
 		try {
-			Thread.sleep(timeout_interval);
+			Thread.sleep(timeout_interval/3);
 		}
 
 		catch (InterruptedException ex) {
@@ -91,13 +91,18 @@ public class UDPServer extends Observable implements Runnable {
 
 		// check for first packet
 		else if (received.getSeqno() == 0) {
-			String name = server_handler.setFile_name(received);
-			setOutputMessage("Server received first packet of " + name);
+			byte[] name_in_bytes = received.getData();
+			String name = new String(name_in_bytes);
+			server_handler.setFile_name(received);
+			int length = received.getAckno();
+			server_handler.setFile_length(length);
+			setOutputMessage("Server received filename " + name);
 		}
 
 		// check for end of file packet
 		else if (received.getSeqno() < 0) {
 			int bytes = server_handler.getBytes_stored();
+			server_handler.outputFile();
 			setOutputMessage("Server received end of file; " + bytes + " bytes stored");
 		}
 
@@ -110,7 +115,12 @@ public class UDPServer extends Observable implements Runnable {
 		// sending ack
 		// if the received packet was corrupted, don't send ack
 		if (received.getCksum() != 1) {
-			int ackno = received.getAckno();
+			int ackno;
+			if (received.getSeqno() == 0) {
+				ackno = 1;
+			} else {
+				ackno = received.getAckno();
+			}
 			Packet ackpacket = new Packet(ackno);
 			DatagramPacket outgoing = server_handler.packetToDGPacket(ackpacket, dgpacket.getAddress(),
 					dgpacket.getPort());

@@ -125,7 +125,7 @@ public class ClientPacketHandler {
 
 		int seqno = 1;
 
-		int queue_size = data.length / packet_size + 5;
+		int queue_size = data.length / packet_size + 3;
 
 		buffer = new ArrayBlockingQueue<Packet>(queue_size);
 
@@ -143,7 +143,7 @@ public class ClientPacketHandler {
 
 				if (data.length - i < packet_size) {
 
-					current_size = data.length - i;
+					current_size = data.length % packet_size;
 
 				}
 
@@ -154,8 +154,6 @@ public class ClientPacketHandler {
 				Packet new_packet = new Packet(seqno, packet_data);
 
 				buffer.put(new_packet);
-
-				// System.out.println("Added " + new_packet.toString());
 
 				seqno++;
 
@@ -199,7 +197,7 @@ public class ClientPacketHandler {
 				Packet nextPacket = buffer.take();
 
 				bytes_sent += nextPacket.getData().length;
-
+				
 				// save "clean" copy of nextPacket in window
 				Packet tempPacket = new Packet(nextPacket.getSeqno(), nextPacket.getData());
 
@@ -276,11 +274,11 @@ public class ClientPacketHandler {
 			buf.putInt(input_p.getSeqno());
 
 			buf.put(input_p.getData());
-
+			
 		}
 
 		DatagramPacket output_dg = new DatagramPacket(temp, temp.length, server, port);
-
+		System.out.println("DG packet length " + temp.length + " bytes");
 		return (output_dg);
 
 	}

@@ -1,8 +1,6 @@
 package packet_handler;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.ArrayList;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.net.*;
 
@@ -11,10 +9,13 @@ public class ServerPacketHandler {
 	UDPServer udpServer;
 
 	// store incoming packets in ArrayList
-	private ArrayList<byte[]> buffer;
+	private byte[] buffer;
 
 	// store name of file to write
 	private String file_name;
+
+	// store length of file to write
+	private int file_length;
 
 	// keep track of how many bytes are in buffer
 	private int bytes_stored;
@@ -49,8 +50,6 @@ public class ServerPacketHandler {
 
 		this.udpServer = udpServer;
 
-		this.buffer = new ArrayList<byte[]>();
-
 		this.bytes_stored = 0;
 
 	}
@@ -77,18 +76,23 @@ public class ServerPacketHandler {
 
 	}
 
-	public int getBufferSize() {
-		return (buffer.size());
+	public int getBufferLength() {
+		return (buffer.length);
 	}
 
-	public String setFile_name(Packet packet) {
+	public void setFile_name(Packet packet) {
 
 		setLastPacketReceived(packet.getSeqno());
 		byte[] name_in_bytes = packet.getData();
 		String name = new String(name_in_bytes);
-		this.file_name = "COPY_OF_" + name;
-		return (name);
+		this.file_name = "/COPY_OF_" + name;
 
+	}
+
+	public void setFile_length(int length) {
+		this.file_length = length;
+		System.out.println("Buffer length " + file_length);
+		buffer = new byte[file_length];
 	}
 
 	// put received Packet data into buffer
@@ -98,11 +102,29 @@ public class ServerPacketHandler {
 
 			setLastPacketReceived(packet.getSeqno());
 			byte[] data = packet.getData();
-			buffer.add(data);
+			System.arraycopy(data, 0, buffer, bytes_stored, data.length);
 			bytes_stored += data.length;
 
 		}
 
+	}
+
+	public void outputFile() {
+
+		try {
+			File file = new File(file_name);
+			if (!file.exists()){
+				file.createNewFile();
+			}
+			FileOutputStream output_f = new FileOutputStream(file);
+			output_f.write(buffer);
+			output_f.flush();
+			output_f.close();
+
+		} catch (Exception ex) {
+			System.out.println("Error writing file");
+
+		}
 	}
 
 	// convert a Packet to a DatagramPacket for sending over UDP
@@ -173,6 +195,10 @@ public class ServerPacketHandler {
 
 		DatagramPacket input_dg = dgPacket;
 
+		// System.out.println("Received DG " + input_dg.getLength() + " bytes");
+
+		int data_length = input_dg.getLength() - 12;
+
 		byte[] temp = input_dg.getData();
 
 		ByteBuffer buf = ByteBuffer.wrap(temp);
@@ -182,7 +208,7 @@ public class ServerPacketHandler {
 		short length = buf.getShort();
 
 		int ackno = buf.getInt();
-
+		
 		// if length 8, this is an ack Packet, so don't worry about data
 		// Server shouldn't be getting ack Packets - this block may not be
 		// needed
@@ -200,11 +226,11 @@ public class ServerPacketHandler {
 
 			int seqno = buf.getInt();
 
-			byte[] data = new byte[buf.remaining()];
+			byte[] data = new byte[data_length];
 
 			buf.get(data);
 
-			Packet output_p = new Packet(seqno, data);
+			Packet output_p = new Packet(seqno, ackno, data);
 
 			// check for corrupted packet
 			if (cksum > 0) {

@@ -52,11 +52,13 @@ class SenderThread extends Thread {
 		
 		String file_name = file.getName();
 		
+		byte[] file_data = handler.convertFile(file);
+		
+		int file_length = (int) file.length();
+		
 		byte[] name_in_bytes = file_name.getBytes();
 		
-		Packet first_packet = new Packet(0, name_in_bytes);
-
-		byte[] file_data = handler.convertFile(file);
+		Packet first_packet = new Packet(0, file_length, name_in_bytes);
 
 		handler.makePackets(file_data, first_packet);
 

@@ -27,6 +27,21 @@ public class Packet {
 	  
 	}
 
+	  // constructor for first packet
+		public Packet(int seqno, int file_length, byte[] data) {
+		  
+		  this.cksum = 0;
+		  
+		  this.seqno = seqno;
+		  
+		  this.ackno = file_length;
+
+		  this.data = data;
+			
+		  this.length = (short) (12 + data.length);
+		  
+		}
+
   // constructor for Ack packet
 	public Packet(int ackno) {
 	  
