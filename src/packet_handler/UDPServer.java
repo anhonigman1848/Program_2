@@ -97,6 +97,9 @@ public class UDPServer extends Observable implements Runnable {
 			int length = received.getAckno();
 			server_handler.setFile_length(length);
 			setOutputMessage("Server received filename " + name);
+			
+			setOutputMessage("Server received first packet of " + name);
+
 		}
 
 		// check for end of file packet
