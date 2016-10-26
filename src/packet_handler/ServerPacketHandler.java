@@ -85,7 +85,7 @@ public class ServerPacketHandler {
 		setLastPacketReceived(packet.getSeqno());
 		byte[] name_in_bytes = packet.getData();
 		String name = new String(name_in_bytes);
-		this.file_name = "/COPY_OF_" + name;
+		this.file_name = "COPY_OF_" + name;
 
 	}
 
@@ -111,7 +111,7 @@ public class ServerPacketHandler {
 	
 	// this is where it should write to new file
 	public void outputFile() {
-
+		
 		try {
 			File file = new File(file_name);
 			if (!file.exists()){
