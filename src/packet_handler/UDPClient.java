@@ -21,6 +21,10 @@ public class UDPClient extends Observable implements Runnable {
 	private double corruption_prob;
 
 	private double failure_prob;
+	
+	private SenderThread sender;
+	
+	private ReceiverThread receiver;
 
 
 	public void run() {
@@ -36,11 +40,11 @@ public class UDPClient extends Observable implements Runnable {
 			ClientPacketHandler client_handler = new ClientPacketHandler(packet_size, corruption_prob, failure_prob,
 					this);
 
-			SenderThread sender = new SenderThread(socket, ia, PORT, client_handler, this);
+			sender = new SenderThread(socket, ia, PORT, client_handler, this);
 
 			sender.start();
 
-			Thread receiver = new ReceiverThread(socket, client_handler, this);
+			receiver = new ReceiverThread(socket, client_handler, this);
 
 			receiver.start();
 
@@ -147,5 +151,11 @@ public class UDPClient extends Observable implements Runnable {
 	public void setSelectedFile(File selectedFile) {
 		this.selectedFile = selectedFile;
 	}
+	
+	public void shutDownSender() {
+		this.sender.halt();
+	}
+
+
 
 }

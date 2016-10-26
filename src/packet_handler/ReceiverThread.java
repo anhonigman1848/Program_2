@@ -55,12 +55,13 @@ class ReceiverThread extends Thread {
 				socket.receive(dp);
 
 				Packet recd = handler.dgpacketToPacket(dp);
-
+				
 				int ackno = recd.getAckno();
 
 				if (ackno == 0) {
 
-					udpClient.setOutputMessage("Client recieved EOF ackno");
+					udpClient.setOutputMessage("Client received EOF ackno");
+					udpClient.shutDownSender();
 
 				}
 

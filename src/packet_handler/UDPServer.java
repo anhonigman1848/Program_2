@@ -36,7 +36,6 @@ public class UDPServer extends Observable implements Runnable {
 
 	}
 
-
 	@Override
 	public void run() {
 
@@ -84,6 +83,7 @@ public class UDPServer extends Observable implements Runnable {
 
 	/**
 	 * Server Response
+	 * 
 	 * @param socket
 	 * @param dgpacket
 	 * @throws IOException
@@ -119,9 +119,8 @@ public class UDPServer extends Observable implements Runnable {
 
 		// check for end of file packet
 		else if (received.getSeqno() < 0) {
-			int bytes = server_handler.getBytes_stored();
 			server_handler.outputFile();
-			setOutputMessage("Server received end of file; " + bytes + " bytes stored");
+			setOutputMessage("Server received end of file");
 		}
 
 		// this is a good packet and not end of file
@@ -139,9 +138,7 @@ public class UDPServer extends Observable implements Runnable {
 			} else {
 				ackno = received.getAckno();
 			}
-			Packet ackpacket = new Packet(ackno);
-			DatagramPacket outgoing = server_handler.packetToDGPacket(ackpacket, dgpacket.getAddress(),
-					dgpacket.getPort());
+			Packet ackpacket = new Packet((short) 0, ackno);
 
 			// check for failure to send ack
 			if (server_handler.failureCheck()) {
@@ -149,6 +146,8 @@ public class UDPServer extends Observable implements Runnable {
 			}
 
 			else {
+				DatagramPacket outgoing = server_handler.packetToDGPacket(ackpacket, dgpacket.getAddress(),
+						dgpacket.getPort());
 				setOutputMessage("Server sending ack no " + ackno);
 				socket.send(outgoing);
 			}
@@ -165,6 +164,7 @@ public class UDPServer extends Observable implements Runnable {
 
 	/**
 	 * Sets the message and notifies Observers
+	 * 
 	 * @param outputMessage
 	 */
 	public void setOutputMessage(String outputMessage) {

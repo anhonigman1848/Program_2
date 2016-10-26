@@ -230,6 +230,9 @@ public class ClientPacketHandler {
 
 				return (window[0]);
 
+			// check if buffer is empty
+			} else if (buffer.peek() == null) {
+				return (window[0]);
 			}
 
 			else {
@@ -326,7 +329,6 @@ public class ClientPacketHandler {
 		}
 
 		DatagramPacket output_dg = new DatagramPacket(temp, temp.length, server, port);
-		System.out.println("DG packet length " + temp.length + " bytes");
 		return (output_dg);
 
 	}
@@ -391,7 +393,7 @@ public class ClientPacketHandler {
 
 		if (length == 8) {
 
-			Packet output_p = new Packet(ackno);
+			Packet output_p = new Packet(cksum, ackno);
 
 			return (output_p);
 

@@ -57,9 +57,9 @@ public class Packet {
 	 * Constructor for Ack Packet
 	 * @param ackno
 	 */
-	public Packet(int ackno) {
+	public Packet(short cksum, int ackno) {
 
-		this.cksum = 0;
+		this.cksum = cksum;
 
 		this.length = 8;
 

@@ -120,7 +120,6 @@ public class ServerPacketHandler {
 	 */
 	public void setFile_length(int length) {
 		this.file_length = length;
-		System.out.println("Buffer length " + file_length);
 		buffer = new byte[file_length];
 	}
 
@@ -267,7 +266,7 @@ public class ServerPacketHandler {
 		// Server shouldn't be getting ack Packets
 		if (length == 8) {
 
-			Packet output_p = new Packet(ackno);
+			Packet output_p = new Packet(cksum, ackno);
 
 			return (output_p);
 
