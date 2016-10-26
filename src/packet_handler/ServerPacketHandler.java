@@ -108,7 +108,8 @@ public class ServerPacketHandler {
 		}
 
 	}
-
+	
+	// this is where it should write to new file
 	public void outputFile() {
 
 		try {
