@@ -22,6 +22,9 @@ public class UDPClient extends Observable implements Runnable {
 
 	private double failure_prob;
 	
+	private int window_size;
+	
+	
 	private SenderThread sender;
 	
 	private ReceiverThread receiver;
@@ -37,7 +40,7 @@ public class UDPClient extends Observable implements Runnable {
 
 			DatagramSocket socket = new DatagramSocket();
 
-			ClientPacketHandler client_handler = new ClientPacketHandler(packet_size, corruption_prob, failure_prob,
+			ClientPacketHandler client_handler = new ClientPacketHandler(packet_size, window_size, corruption_prob, failure_prob,
 					this);
 
 			sender = new SenderThread(socket, ia, PORT, client_handler, this);
@@ -154,6 +157,15 @@ public class UDPClient extends Observable implements Runnable {
 	
 	public void shutDownSender() {
 		this.sender.halt();
+	}
+
+	public int getWindow_size() {
+		return window_size;
+	}
+
+	public void setWindow_size(int window_size) {
+		//System.out.println("UDPClient: Setting window_size to: " + window_size);
+		this.window_size = window_size;
 	}
 
 

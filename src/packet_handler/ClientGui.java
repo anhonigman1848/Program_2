@@ -50,6 +50,7 @@ public class ClientGui extends JFrame implements Observer {
 
 	private JTextField timeoutTextField;
 	private int timeout_interval = 0;
+	private JTextField windowSizeTextField;
 
 	/**
 	 * Create the frame.
@@ -108,11 +109,13 @@ public class ClientGui extends JFrame implements Observer {
 
 				double corruption_prob = Double.parseDouble(corruptionTextField.getText());
 				double failure_prob = Double.parseDouble(packetLossTextField.getText());
+				
+				int window_size = Integer.parseInt(windowSizeTextField.getText());
 
 				int packet_size = Integer.parseInt(packetSizeTextField.getText());
 				int timeout_interval = Integer.parseInt(timeoutTextField.getText());
 
-				runUdp.setParameters(failure_prob, corruption_prob, packet_size, timeout_interval);
+				runUdp.setParameters(failure_prob, corruption_prob, packet_size, timeout_interval, window_size);
 
 				udpClient.run();
 			}
@@ -127,22 +130,22 @@ public class ClientGui extends JFrame implements Observer {
 
 		JLabel lblPacketLoss = new JLabel("Packet Loss (%):");
 		lblPacketLoss.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblPacketLoss.setBounds(274, 87, 120, 14);
+		lblPacketLoss.setBounds(274, 115, 120, 14);
 		contentPane.add(lblPacketLoss);
 
 		packetLossTextField = new JTextField();
-		packetLossTextField.setBounds(395, 84, 86, 20);
+		packetLossTextField.setBounds(395, 112, 86, 20);
 		packetLossTextField.setText("0");
 		contentPane.add(packetLossTextField);
 		packetLossTextField.setColumns(10);
 
 		JLabel lblCorruption = new JLabel("Corruption (%):");
 		lblCorruption.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblCorruption.setBounds(274, 114, 120, 14);
+		lblCorruption.setBounds(274, 142, 120, 14);
 		contentPane.add(lblCorruption);
 
 		corruptionTextField = new JTextField();
-		corruptionTextField.setBounds(395, 112, 86, 20);
+		corruptionTextField.setBounds(395, 140, 86, 20);
 		corruptionTextField.setText("0");
 		contentPane.add(corruptionTextField);
 		corruptionTextField.setColumns(10);
@@ -169,6 +172,17 @@ public class ClientGui extends JFrame implements Observer {
 		timeoutTextField.setText("1000");
 		contentPane.add(timeoutTextField);
 		timeoutTextField.setColumns(10);
+		
+		JLabel lblWindowSize = new JLabel("Window Size:");
+		lblWindowSize.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblWindowSize.setBounds(297, 88, 92, 14);
+		contentPane.add(lblWindowSize);
+		
+		windowSizeTextField = new JTextField();
+		windowSizeTextField.setText("1");
+		windowSizeTextField.setBounds(395, 84, 86, 20);
+		contentPane.add(windowSizeTextField);
+		windowSizeTextField.setColumns(10);
 
 	}
 
