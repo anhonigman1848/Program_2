@@ -52,7 +52,7 @@ public class ClientPacketHandler {
 
 		this.failure_prob = failure_prob;
 
-		this.window = new Packet[1];
+		this.window = new Packet[window_size];
 
 		this.lastAckReceived = 0;
 
