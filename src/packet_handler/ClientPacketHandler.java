@@ -251,7 +251,7 @@ public class ClientPacketHandler {
 
 					nextPacket.setCksum((short) 1);
 
-					udpClient.setOutputMessage("Sending Corrupted packet! " + nextPacket.getSeqno());
+					udpClient.setOutputMessage("Corrupted packet! " + nextPacket.getSeqno());
 
 				}
 
