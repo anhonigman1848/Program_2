@@ -16,6 +16,8 @@ class ReceiverThread extends Thread {
 
 	private ClientPacketHandler handler;
 
+	private int timeout_interval;
+
 	ReceiverThread(DatagramSocket socket, ClientPacketHandler handler, UDPClient udpClient) {
 
 		this.socket = socket;
@@ -25,6 +27,8 @@ class ReceiverThread extends Thread {
 		this.udpClient = udpClient;
 
 		this.packet_size = udpClient.getPacket_size();
+		
+		this.timeout_interval = udpClient.getTimeout_interval();
 
 	}
 
@@ -51,7 +55,9 @@ class ReceiverThread extends Thread {
 			DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
 
 			try {
-
+				//FIXME added and confirmed it works, but is this the only place? Added additional Catch for timeout, what needs to be in there?
+				socket.setSoTimeout(timeout_interval);
+				
 				socket.receive(dp);
 
 				Packet recd = handler.dgpacketToPacket(dp);
@@ -79,6 +85,9 @@ class ReceiverThread extends Thread {
 
 				Thread.yield();
 
+			}
+			catch(SocketTimeoutException ste){
+				System.err.println(ste);
 			}
 
 			catch (IOException ex) {

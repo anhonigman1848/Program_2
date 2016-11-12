@@ -20,9 +20,12 @@ public class RunUDP {
 
 	private double failure_prob;
 
+	private int window_size;
+
 	private UDPClient udpClient;
 
 	private UDPServer udpServer;
+
 
 	/**
 	 * Setup Client and Server
@@ -85,6 +88,15 @@ public class RunUDP {
 		this.udpServer.setTimeout_interval(timeout_interval);
 	}
 
+	private void setWindow_size(int window_size) {
+		//System.out.println("RunUDP: Setting window_size to: " + window_size);
+
+		this.window_size = window_size;
+		this.udpClient.setWindow_size(window_size);
+		
+		
+	}
+	
 	/**
 	 * Set initial Parameters, by user input
 	 * @param failure_prob
@@ -92,17 +104,19 @@ public class RunUDP {
 	 * @param packet_size
 	 * @param timeout_interval
 	 */
-	public void setParameters(double failure_prob, double corruption_prob, int packet_size, int timeout_interval) {
+	public void setParameters(double failure_prob, double corruption_prob, int packet_size, int timeout_interval, int window_size) {
 
 		this.setPacket_size(packet_size);
 		this.setTimeout_interval(timeout_interval);
 		this.setCorruption_prob(corruption_prob);
 		this.setFailure_prob(failure_prob);
+		this.setWindow_size(window_size);
 
 		Thread t = new Thread(udpServer);
 		t.start();
 
 	}
+
 
 	/**
 	 * @return packet_size

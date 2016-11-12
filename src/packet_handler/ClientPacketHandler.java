@@ -16,10 +16,13 @@ public class ClientPacketHandler {
 
 	// keep track of how many bytes sent
 	private int bytes_sent;
-
+	
+	//Size of the sliding window
+	private int window_size;
+	
 	// store sent packets in Packet array
 	private Packet[] window;
-
+	
 	private volatile int lastAckReceived;
 
 	private int packet_size;
@@ -30,6 +33,7 @@ public class ClientPacketHandler {
 	// probability that a Packet will fail on sending
 	private double failure_prob;
 
+
 	/**
 	 * Constructor
 	 * @param packet_size
@@ -37,15 +41,18 @@ public class ClientPacketHandler {
 	 * @param failure_prob
 	 * @param udpClient
 	 */
-	public ClientPacketHandler(int packet_size, double corruption_prob, double failure_prob, UDPClient udpClient) {
+	public ClientPacketHandler(int packet_size, int window_size, double corruption_prob, double failure_prob, UDPClient udpClient) {
 
 		this.packet_size = packet_size;
+		
+		//System.out.println("ClientPacketHandler: Setting window_size to: " + window_size);
+		this.window_size = window_size;
 
 		this.corruption_prob = corruption_prob;
 
 		this.failure_prob = failure_prob;
 
-		this.window = new Packet[1];
+		this.window = new Packet[window_size];
 
 		this.lastAckReceived = 0;
 
