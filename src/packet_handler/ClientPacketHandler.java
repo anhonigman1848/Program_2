@@ -24,6 +24,12 @@ public class ClientPacketHandler {
 	private Packet[] window;
 	
 	private volatile int lastAckReceived;
+	
+	// pointer to first element of window
+	private volatile int firstUnacked;
+	
+	// pointer to last element of window
+	private volatile int lastPacketSent;
 
 	private int packet_size;
 
@@ -55,6 +61,10 @@ public class ClientPacketHandler {
 		this.window = new Packet[window_size];
 
 		this.lastAckReceived = 0;
+		
+		this.firstUnacked = -1;
+		
+		this.lastPacketSent = -1;
 
 		this.udpClient = udpClient;
 
@@ -97,6 +107,22 @@ public class ClientPacketHandler {
 
 		return (lastAckReceived);
 
+	}
+
+	public synchronized int getFirstUnacked() {
+		return firstUnacked;
+	}
+
+	public synchronized void setFirstUnacked(int firstUnacked) {
+		this.firstUnacked = firstUnacked;
+	}
+
+	public synchronized int getLastPacketSent() {
+		return lastPacketSent;
+	}
+
+	public synchronized void setLastPacketSent(int lastPacketSent) {
+		this.lastPacketSent = lastPacketSent;
 	}
 
 	/**
@@ -207,13 +233,29 @@ public class ClientPacketHandler {
 			Packet last_packet = new Packet(-1, nodata);
 
 			buffer.put(last_packet);
-
+			
 		} catch (Exception ex) {
 
 			System.out.println("Error in makePackets: " + ex);
 
 		}
 
+	}
+	
+	// call to load window before sending any packets
+	public void loadWindow() {
+		
+		int capacity = Math.min(window_size, buffer.size());
+		
+		for (int i = 0; i < capacity; i++) {
+			try {
+				window[i] = buffer.take();
+			}
+			catch (InterruptedException ex) {
+				System.out.println("Error in loadWindow " + ex);				
+			}
+		}
+		
 	}
 
 	/**
@@ -223,6 +265,16 @@ public class ClientPacketHandler {
 
 		return (buffer.size());
 
+	}
+	
+	public int circularIncrement(int start, int increment) {
+		
+		if ((start + increment) < window_size) {
+			return (start + increment);
+		} else {
+			return (start + increment - window_size);
+		}
+		
 	}
 
 	/**
@@ -276,6 +328,15 @@ public class ClientPacketHandler {
 
 		}
 
+	}
+	
+	public Packet[] nextPackets() {
+		Packet[] temp = new Packet[window_size];
+		for (int i = 0; i < window_size; i++) {
+			int index = circularIncrement(firstUnacked, i);
+			temp[i] = window[index];
+		}
+		return(temp);
 	}
 
 	/**

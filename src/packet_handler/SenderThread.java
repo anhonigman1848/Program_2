@@ -64,6 +64,8 @@ class SenderThread extends Thread {
 		Packet first_packet = new Packet(0, file_length, name_in_bytes);
 
 		handler.makePackets(file_data, first_packet);
+		
+		handler.loadWindow();
 
 		try {
 
@@ -72,16 +74,19 @@ class SenderThread extends Thread {
 				if (stopped)
 					return;
 
-				Packet next = handler.nextPacket();
+				Packet[] next = handler.nextPackets();
 				
-				DatagramPacket output = handler.packetToDGPacket(next, server,
+				for (int i = 0; i < next.length; i++) {
+					
+					DatagramPacket output = handler.packetToDGPacket(next[i], server,
 						port);
 
-				if (!handler.failureCheck()) {
+					if (!handler.failureCheck()) {
 
-					udpClient.setOutputMessage("Client sending packet no " + next.getSeqno());
-					socket.send(output);
+						udpClient.setOutputMessage("Client sending packet no " + next[i].getSeqno());
+						socket.send(output);
 
+					}
 				}
 
 				try {
@@ -96,7 +101,7 @@ class SenderThread extends Thread {
 
 				}
 
-				if (next.getSeqno() < 0) {
+				if (next[next.length - 1].getSeqno() < 0) {
 					
 					udpClient.setOutputMessage("Client: End of file reached");
 					
