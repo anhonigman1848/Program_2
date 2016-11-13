@@ -19,6 +19,8 @@ public class UDPServer extends Observable implements Runnable {
 	private double corruption_prob;
 
 	private boolean firstPacketReceived = false;
+	
+	private boolean endOfFileReceived = false;
 
 	private volatile boolean isShutDown = false;
 
@@ -121,14 +123,32 @@ public class UDPServer extends Observable implements Runnable {
 				firstPacketReceived = true;
 			} else {
 				setOutputMessage("Server received duplicate packet 0");				
+				return;
 			}
 
 		}
 
 		// check for end of file packet
 		else if (received.getSeqno() < 0) {
-			server_handler.outputFile();
-			setOutputMessage("Server received end of file");
+			if (!endOfFileReceived) {
+				server_handler.outputFile();
+				setOutputMessage("Server received end of file");
+			} else {
+				setOutputMessage("Server received duplicate EOF");
+				return;
+			}
+		}
+		
+		// check for packet already received
+		else if (received.getSeqno() <= server_handler.getLastPacketReceived()) {
+			setOutputMessage("Server received duplicate packet no " + received.getSeqno());
+			return;
+		}
+
+		// check for packet received out of sequence
+		else if (received.getSeqno() > server_handler.getLastPacketReceived() + 1) {
+			setOutputMessage("Server received out-of-sequence packet no " + received.getSeqno());
+			return;
 		}
 
 		// this is a good packet and not end of file

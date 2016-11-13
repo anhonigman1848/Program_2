@@ -13,6 +13,9 @@ public class ClientPacketHandler {
 
 	// store packets in BlockingQueue for Thread support
 	private BlockingQueue<Packet> buffer;
+	
+	// keep track of original size of buffer
+	private int bufferStartSize;
 
 	// keep track of how many bytes sent
 	private int bytes_sent;
@@ -25,10 +28,10 @@ public class ClientPacketHandler {
 	
 	private volatile int lastAckReceived;
 	
-	// pointer to first element of window
+	// seqno of first element of window
 	private volatile int firstUnacked;
 	
-	// pointer to last element of window
+	// seqno of last element of window
 	private volatile int lastPacketSent;
 
 	private int packet_size;
@@ -62,7 +65,7 @@ public class ClientPacketHandler {
 
 		this.lastAckReceived = 0;
 		
-		this.firstUnacked = -1;
+		this.firstUnacked = 0;
 		
 		this.lastPacketSent = -1;
 
@@ -129,12 +132,11 @@ public class ClientPacketHandler {
 	 * Method to simulate failures
 	 * @return boolean
 	 */
-	public boolean failureCheck() {
+	public boolean failureCheck(int seqno) {
 
 		if (Math.random() < failure_prob) {
 
-			// System.out.println("Failed to send packet!");
-			udpClient.setOutputMessage("Failed to send packet, no response from Server!");
+			udpClient.setOutputMessage("Failed to send packet no " + seqno);
 
 			return (true);
 
@@ -234,6 +236,9 @@ public class ClientPacketHandler {
 
 			buffer.put(last_packet);
 			
+			// record original size of buffer
+			bufferStartSize = buffer.size();
+			
 		} catch (Exception ex) {
 
 			System.out.println("Error in makePackets: " + ex);
@@ -242,20 +247,36 @@ public class ClientPacketHandler {
 
 	}
 	
-	// call to load window before sending any packets
+	// loads all currently open spaces in window
 	public void loadWindow() {
 		
-		int capacity = Math.min(window_size, buffer.size());
+		// if packet 0 failed to send, return
+		if (window[0] != null & lastPacketSent < 0) {
+			return;
+		}
 		
-		for (int i = 0; i < capacity; i++) {
+		// reset window size after buffer empties out
+		window_size = Math.min(window_size, bufferStartSize - firstUnacked);
+
+		// calculate how many unacked packets are in window
+		int packetsInWindow = 1 + lastPacketSent - firstUnacked;
+		
+		// count open spaces
+		int openSpaces = window_size - packetsInWindow;
+
+		// don't load more packets than remaining in buffer
+		int maxToLoad = Math.min(buffer.size(), openSpaces);
+
+		for (int i = 0; i < maxToLoad; i++) {
 			try {
-				window[i] = buffer.take();
+				int index = (lastPacketSent + 1 + i) % window_size;
+				window[index] = buffer.take();
 			}
 			catch (InterruptedException ex) {
 				System.out.println("Error in loadWindow " + ex);				
 			}
 		}
-		
+			
 	}
 
 	/**
@@ -267,6 +288,7 @@ public class ClientPacketHandler {
 
 	}
 	
+	// increment through window - go back to 0 when you reach the end
 	public int circularIncrement(int start, int increment) {
 		
 		if ((start + increment) < window_size) {
@@ -330,10 +352,11 @@ public class ClientPacketHandler {
 
 	}
 	
+	// return all unacked packets in window
 	public Packet[] nextPackets() {
 		Packet[] temp = new Packet[window_size];
 		for (int i = 0; i < window_size; i++) {
-			int index = circularIncrement(firstUnacked, i);
+			int index = circularIncrement(firstUnacked % window_size, i);
 			temp[i] = window[index];
 		}
 		return(temp);

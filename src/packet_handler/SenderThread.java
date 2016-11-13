@@ -65,14 +65,14 @@ class SenderThread extends Thread {
 
 		handler.makePackets(file_data, first_packet);
 		
-		handler.loadWindow();
-
 		try {
 
 			while (true) {
 
 				if (stopped)
 					return;
+
+				handler.loadWindow();
 
 				Packet[] next = handler.nextPackets();
 				
@@ -81,10 +81,11 @@ class SenderThread extends Thread {
 					DatagramPacket output = handler.packetToDGPacket(next[i], server,
 						port);
 
-					if (!handler.failureCheck()) {
+					if (!handler.failureCheck(next[i].getSeqno())) {
 
 						udpClient.setOutputMessage("Client sending packet no " + next[i].getSeqno());
 						socket.send(output);
+						handler.setLastPacketSent(next[i].getSeqno());
 
 					}
 				}

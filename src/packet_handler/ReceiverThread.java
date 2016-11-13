@@ -78,6 +78,8 @@ class ReceiverThread extends Thread {
 						udpClient.setOutputMessage("Client received ack no " + ackno);
 
 						handler.setLastAckReceived(ackno);
+						
+						handler.setFirstUnacked(ackno);
 
 					}
 
