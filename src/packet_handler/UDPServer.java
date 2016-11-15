@@ -97,13 +97,13 @@ public class UDPServer extends Observable implements Runnable {
 		// convert DatagramPacket to Packet
 		Packet received = server_handler.dgpacketToPacket(dgpacket);
 
-		try {
+		/* try {
 			Thread.sleep(timeout_interval / 3);
 		}
 
 		catch (InterruptedException ex) {
 			System.out.println(ex);
-		}
+		} */
 
 		// check for corrupted packet
 		if (received.getCksum() == 1) {
@@ -128,42 +128,39 @@ public class UDPServer extends Observable implements Runnable {
 
 		}
 
-		// check for end of file packet
-		else if (received.getSeqno() < 0) {
-			if (!endOfFileReceived) {
-				server_handler.outputFile();
-				setOutputMessage("Server received end of file");
-			} else {
-				setOutputMessage("Server received duplicate EOF");
-				return;
-			}
-		}
-		
-		// check for packet already received
-		else if (received.getSeqno() <= server_handler.getLastPacketReceived()) {
-			setOutputMessage("Server received duplicate packet no " + received.getSeqno());
-			return;
-		}
-
 		// check for packet received out of sequence
 		else if (received.getSeqno() > server_handler.getLastPacketReceived() + 1) {
 			setOutputMessage("Server received out-of-sequence packet no " + received.getSeqno());
 			return;
 		}
 
+		// check for end of file packet
+		else if (received.getSeqno() < 0) {
+			if (!endOfFileReceived) {
+				if (server_handler.getBytes_stored() < server_handler.getFile_length()) {
+					setOutputMessage("Server received out-of-sequence EOF");
+					return;
+				}
+				server_handler.outputFile();
+				setOutputMessage("Server received end of file");
+			} else {
+				setOutputMessage("Server received duplicate EOF");
+			}
+		}
+		
 		// this is a good packet and not end of file
 		else {
 			setOutputMessage("Server received packet no " + received.getSeqno());
 			server_handler.addToBuffer(received);
 		}
 
-		try {
+/*		try {
 			Thread.sleep(timeout_interval / 3);
 		}
 
 		catch (InterruptedException ex) {
 			System.out.println(ex);
-		}
+		} */
 
 		// sending ack
 		// if the received packet was corrupted, don't send ack

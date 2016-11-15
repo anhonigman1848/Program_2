@@ -2,6 +2,9 @@ package packet_handler;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.nio.ByteBuffer;
@@ -23,16 +26,19 @@ public class ClientPacketHandler {
 	//Size of the sliding window
 	private int window_size;
 	
-	// store sent packets in Packet array
+	// store packets in Packet array
 	private Packet[] window;
+	
+	// timers for packet being sent
+	protected Timer[] timers;
 	
 	private volatile int lastAckReceived;
 	
-	// seqno of first element of window
-	private volatile int firstUnacked;
-	
 	// seqno of last element of window
 	private volatile int lastPacketSent;
+
+	// number of packets sent and unacked
+	private volatile int packetsPending;
 
 	private int packet_size;
 
@@ -61,13 +67,11 @@ public class ClientPacketHandler {
 
 		this.failure_prob = failure_prob;
 
-		this.window = new Packet[window_size];
-
 		this.lastAckReceived = 0;
 		
-		this.firstUnacked = 0;
-		
 		this.lastPacketSent = -1;
+		
+		this.packetsPending = 0;
 
 		this.udpClient = udpClient;
 
@@ -111,13 +115,19 @@ public class ClientPacketHandler {
 		return (lastAckReceived);
 
 	}
-
-	public synchronized int getFirstUnacked() {
-		return firstUnacked;
+	
+	public Timer getTimer(int seqno) {
+		return (timers[seqno]);
 	}
-
-	public synchronized void setFirstUnacked(int firstUnacked) {
-		this.firstUnacked = firstUnacked;
+	
+	public synchronized void startTimer(int seqno) {
+		timers[seqno] = new Timer();
+	}
+	
+	public synchronized void stopTimer(int seqno) {
+		if (timers[seqno] != null) {
+			timers[seqno].cancel();
+		}
 	}
 
 	public synchronized int getLastPacketSent() {
@@ -126,6 +136,22 @@ public class ClientPacketHandler {
 
 	public synchronized void setLastPacketSent(int lastPacketSent) {
 		this.lastPacketSent = lastPacketSent;
+	}
+
+	public synchronized int getPacketsPending() {
+		return packetsPending;
+	}
+
+	public synchronized void setPacketsPending(int packetsPending) {
+		this.packetsPending = packetsPending;
+	}
+
+	public synchronized int getWindow_size() {
+		return window_size;
+	}
+	
+	public Packet getPacket(int seqno) {
+		return (window[seqno]);
 	}
 
 	/**
@@ -197,6 +223,8 @@ public class ClientPacketHandler {
 		int queue_size = data.length / packet_size + 3;
 
 		buffer = new ArrayBlockingQueue<Packet>(queue_size);
+		
+		timers = new Timer[queue_size];
 
 		try {
 			buffer.put(first_packet);
@@ -239,6 +267,8 @@ public class ClientPacketHandler {
 			// record original size of buffer
 			bufferStartSize = buffer.size();
 			
+			window = buffer.toArray(new Packet[0]);
+			
 		} catch (Exception ex) {
 
 			System.out.println("Error in makePackets: " + ex);
@@ -247,38 +277,6 @@ public class ClientPacketHandler {
 
 	}
 	
-	// loads all currently open spaces in window
-	public void loadWindow() {
-		
-		// if packet 0 failed to send, return
-		if (window[0] != null & lastPacketSent < 0) {
-			return;
-		}
-		
-		// reset window size after buffer empties out
-		window_size = Math.min(window_size, bufferStartSize - firstUnacked);
-
-		// calculate how many unacked packets are in window
-		int packetsInWindow = 1 + lastPacketSent - firstUnacked;
-		
-		// count open spaces
-		int openSpaces = window_size - packetsInWindow;
-
-		// don't load more packets than remaining in buffer
-		int maxToLoad = Math.min(buffer.size(), openSpaces);
-
-		for (int i = 0; i < maxToLoad; i++) {
-			try {
-				int index = (lastPacketSent + 1 + i) % window_size;
-				window[index] = buffer.take();
-			}
-			catch (InterruptedException ex) {
-				System.out.println("Error in loadWindow " + ex);				
-			}
-		}
-			
-	}
-
 	/**
 	 * @return buffer size
 	 */
@@ -297,69 +295,6 @@ public class ClientPacketHandler {
 			return (start + increment - window_size);
 		}
 		
-	}
-
-	/**
-	 * @return nextPacket
-	 */
-	public Packet nextPacket() {
-
-		try {
-
-			// check whether last Packet sent has been acked
-			if (getNextPacketSeqno() > lastAckReceived) {
-
-				return (window[0]);
-
-			// check if buffer is empty
-			} else if (buffer.peek() == null) {
-				return (window[0]);
-			}
-
-			else {
-
-				Packet nextPacket = buffer.take();
-
-				bytes_sent += nextPacket.getData().length;
-
-				// save "clean" copy of nextPacket in window
-				Packet tempPacket = new Packet(nextPacket.getSeqno(),
-						nextPacket.getAckno(),nextPacket.getData());
-
-				window[0] = tempPacket;
-
-				if (Math.random() < corruption_prob && (tempPacket.getSeqno() > 0)) {
-
-					nextPacket.setCksum((short) 1);
-
-					udpClient.setOutputMessage("Corrupted packet! " + nextPacket.getSeqno());
-
-				}
-
-				return (nextPacket);
-
-			}
-
-		}
-
-		catch (Exception ex) {
-
-			System.out.println("Error in nextPacket " + ex);
-
-			return (null);
-
-		}
-
-	}
-	
-	// return all unacked packets in window
-	public Packet[] nextPackets() {
-		Packet[] temp = new Packet[window_size];
-		for (int i = 0; i < window_size; i++) {
-			int index = circularIncrement(firstUnacked % window_size, i);
-			temp[i] = window[index];
-		}
-		return(temp);
 	}
 
 	/**

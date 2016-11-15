@@ -55,8 +55,6 @@ class ReceiverThread extends Thread {
 			DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
 
 			try {
-				//FIXME added and confirmed it works, but is this the only place? Added additional Catch for timeout, what needs to be in there?
-				socket.setSoTimeout(timeout_interval);
 				
 				socket.receive(dp);
 
@@ -65,8 +63,12 @@ class ReceiverThread extends Thread {
 				int ackno = recd.getAckno();
 
 				if (ackno == 0) {
+					//handler.stopTimer(handler.getLastAckReceived());
 
 					udpClient.setOutputMessage("Client received EOF ackno");
+					for (int i = 0; i < handler.getBufferSize(); i++) {
+						handler.stopTimer(i);
+					}
 					udpClient.shutDownSender();
 
 				}
@@ -74,12 +76,17 @@ class ReceiverThread extends Thread {
 				else {
 
 					if (ackno > handler.getLastAckReceived()) {
-
+						
+						for (int i = 0; i < ackno; i++) {
+							handler.stopTimer(i);
+						}
 						udpClient.setOutputMessage("Client received ack no " + ackno);
 
 						handler.setLastAckReceived(ackno);
 						
-						handler.setFirstUnacked(ackno);
+						int pp = handler.getLastPacketSent() - ackno + 1;
+						
+						handler.setPacketsPending(pp);
 
 					}
 
@@ -88,10 +95,6 @@ class ReceiverThread extends Thread {
 				Thread.yield();
 
 			}
-			catch(SocketTimeoutException ste){
-				System.err.println(ste);
-			}
-
 			catch (IOException ex) {
 
 				System.err.println(ex);

@@ -3,6 +3,8 @@ package packet_handler;
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 class SenderThread extends Thread {
 
@@ -15,6 +17,8 @@ class SenderThread extends Thread {
 	private int port;
 	
 	private int timeout_interval;
+	
+	private Timer timer;
 
 	private ClientPacketHandler handler;
 
@@ -47,6 +51,57 @@ class SenderThread extends Thread {
 		this.stopped = true;
 
 	}
+	
+	public void sendPacket(int seqno) {
+		Packet next = handler.getPacket(seqno);
+		DatagramPacket output = handler.packetToDGPacket(next, server,
+				port);
+
+		// check for failure before sending
+		if (!handler.failureCheck(seqno)) {
+
+			try {
+				udpClient.setOutputMessage("Client sending packet no " + seqno);
+				socket.send(output);
+				if (seqno < 0) {
+					udpClient.setOutputMessage("Client: End of file reached");
+				}
+			}
+			catch (IOException ex) {
+				System.out.println("Error in sendPacket");
+			}
+
+		}
+		if (handler.getTimer(seqno) != null) {
+			handler.stopTimer(seqno);
+		} 
+		handler.startTimer(seqno);
+		handler.timers[seqno].schedule(new SendTask(seqno), timeout_interval);
+
+		try {
+
+			Thread.sleep(timeout_interval / 2);
+
+		}
+
+		catch (InterruptedException ex) {
+
+			System.out.println(ex);
+
+		}
+
+	}
+	
+	class SendTask extends TimerTask {
+		private int seqno;
+		SendTask(int seqno) {
+			this.seqno = seqno;
+		}
+		public void run() {
+			udpClient.setOutputMessage("Packet " + seqno + " timed out");
+			sendPacket(seqno);
+		}
+	}
 
 	@Override
 	public void run() {
@@ -72,54 +127,22 @@ class SenderThread extends Thread {
 				if (stopped)
 					return;
 
-				handler.loadWindow();
-
-				Packet[] next = handler.nextPackets();
-				
-				for (int i = 0; i < next.length; i++) {
-					
-					DatagramPacket output = handler.packetToDGPacket(next[i], server,
-						port);
-
-					if (!handler.failureCheck(next[i].getSeqno())) {
-
-						udpClient.setOutputMessage("Client sending packet no " + next[i].getSeqno());
-						socket.send(output);
-						handler.setLastPacketSent(next[i].getSeqno());
-
-					}
+				while (handler.getPacketsPending() < handler.getWindow_size() &
+						handler.getLastPacketSent() < handler.getBufferSize() - 1) {
+					int last = handler.getLastPacketSent();
+					sendPacket(last + 1);
+					handler.setLastPacketSent(last + 1);
+					handler.setPacketsPending(handler.getPacketsPending() + 1);
+					udpClient.setOutputMessage(handler.getPacketsPending() + " Packets pending");
 				}
 
-				try {
-
-					Thread.sleep(timeout_interval);
-
-				}
-
-				catch (InterruptedException ex) {
-
-					System.out.println(ex);
-
-				}
-
-				if (next[next.length - 1].getSeqno() < 0) {
-					
-					udpClient.setOutputMessage("Client: End of file reached");
-					
-
-				}
-
-				else {
-
-					Thread.yield();
-
-				}
+				Thread.yield();
 
 			}
 
 		}
 
-		catch (IOException ex) {
+		catch (Exception ex) {
 
 			System.err.println(ex);
 

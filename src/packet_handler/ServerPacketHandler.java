@@ -122,6 +122,10 @@ public class ServerPacketHandler {
 		this.file_length = length;
 		buffer = new byte[file_length];
 	}
+	
+	public int getFile_length() {
+		return (file_length);
+	}
 
 	/**
 	 * Put received Packet data into buffer
@@ -129,7 +133,7 @@ public class ServerPacketHandler {
 	 */
 	public void addToBuffer(Packet packet) {
 
-		if (packet.getSeqno() > lastPacketReceived) {
+		if (packet.getSeqno() == lastPacketReceived + 1) {
 
 			setLastPacketReceived(packet.getSeqno());
 			byte[] data = packet.getData();
