@@ -109,7 +109,7 @@ class SenderThread extends Thread {
 			this.seqno = seqno;
 		}
 		public void run() {
-			udpClient.setOutputMessage("Packet " + seqno + " timed out");
+			udpClient.setOutputMessage("Packet " + seqno + " timed out; resending");
 			sendPacket(seqno);
 		}
 	}

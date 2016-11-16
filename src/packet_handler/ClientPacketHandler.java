@@ -25,7 +25,7 @@ public class ClientPacketHandler {
 	private Packet[] window;
 	
 	// timers for packet being sent
-	protected Timer[] timers;
+	protected volatile Timer[] timers;
 	
 	private volatile int lastAckReceived;
 	
@@ -110,7 +110,7 @@ public class ClientPacketHandler {
 
 	}
 	
-	public Timer getTimer(int seqno) {
+	public synchronized Timer getTimer(int seqno) {
 		return (timers[seqno]);
 	}
 	

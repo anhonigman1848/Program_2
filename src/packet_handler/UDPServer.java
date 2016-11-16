@@ -114,7 +114,7 @@ public class UDPServer extends Observable implements Runnable {
 				setOutputMessage("Server received packet 0 of " + name);
 				firstPacketReceived = true;
 			} else {
-				setOutputMessage("Server received and discarded duplicate packet 0");				
+				setOutputMessage("Server received duplicate packet 0");				
 			}
 
 		}
@@ -136,14 +136,14 @@ public class UDPServer extends Observable implements Runnable {
 				server_handler.outputFile();
 				setOutputMessage("Server received end of file");
 			} else {
-				setOutputMessage("Server received and discarded duplicate EOF");
+				setOutputMessage("Server received duplicate EOF");
 			}
 		}
 		
 		// check for duplicate packet
 		else if (received.getSeqno() <= server_handler.getLastPacketReceived()) {
 			setOutputMessage(
-					"Server received and discarded duplicate packet no " + received.getSeqno());
+					"Server received duplicate packet no " + received.getSeqno());
 		}
 
 		// this is a good packet and not end of file
