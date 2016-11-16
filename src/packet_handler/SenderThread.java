@@ -51,9 +51,11 @@ class SenderThread extends Thread {
 	
 	public void sendPacket(int seqno) {
 		// stop any timers for packets higher in sequence
-		for (int i = seqno; i < handler.getBufferSize(); i++) {
+		
+		//FIXME, added failures, remove or tweak
+		/*for (int i = seqno; i < handler.getBufferSize(); i++) {
 			handler.stopTimer(i);
-		}
+		}*/
 		Packet next = handler.getPacket(seqno);
 		
 		// check for corrupted packet
