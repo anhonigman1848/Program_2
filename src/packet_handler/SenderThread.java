@@ -79,14 +79,20 @@ class SenderThread extends Thread {
 			handler.stopTimer(seqno);
 		} 
 		handler.startTimer(seqno);
-		handler.timers[seqno].schedule(new SendTask(seqno), timeoutInterval);
+		
+		try{
+			handler.timers[seqno].schedule(new SendTask(seqno), timeoutInterval);			
+		}catch (Exception e){
+			//FIXME perhaps take this out
+			System.out.println("SendTask Exception");
+		}
 
 		try {
 
 			Thread.sleep(timeoutInterval / 3);
 
 		}
-
+		
 		catch (InterruptedException ex) {
 
 			System.out.println(ex);
