@@ -79,7 +79,7 @@ class ReceiverThread extends Thread {
 							}
 							udpClient.setOutputMessage(
 									"Client received acknowledgement of packet " + (ackno - 1) 
-									+ " and request for packet " + ackno);
+									+ "; Server ready for packet " + ackno);
 
 							handler.setLastAckReceived(ackno);
 

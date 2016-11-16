@@ -50,6 +50,10 @@ class SenderThread extends Thread {
 	}
 	
 	public void sendPacket(int seqno) {
+		// stop any timers for packets higher in sequence
+		for (int i = seqno; i < handler.getBufferSize(); i++) {
+			handler.stopTimer(i);
+		}
 		Packet next = handler.getPacket(seqno);
 		
 		// check for corrupted packet
@@ -77,6 +81,7 @@ class SenderThread extends Thread {
 			}
 
 		}
+		handler.setLastPacketSent(seqno);
 		if (handler.getTimer(seqno) != null) {
 			handler.stopTimer(seqno);
 		} 
@@ -108,10 +113,20 @@ class SenderThread extends Thread {
 		SendTask(int seqno) {
 			this.seqno = seqno;
 		}
-		public void run() {
+		public synchronized void run() {
 			udpClient.setOutputMessage("Packet " + seqno + " timed out; resending");
 			sendPacket(seqno);
 		}
+	}
+	
+	public synchronized void resetWindow(int seqno) {
+		// stop all timers
+		for (int i = 0; i < handler.getBufferSize(); i++) {
+			handler.stopTimer(i);
+		}
+		// make window start over
+		handler.setLastPacketSent(seqno - 1);
+		handler.setPacketsPending(0);
 	}
 
 	@Override
@@ -142,7 +157,7 @@ class SenderThread extends Thread {
 						handler.getLastPacketSent() < handler.getBufferSize() - 1) {
 					int last = handler.getLastPacketSent();
 					sendPacket(last + 1);
-					handler.setLastPacketSent(last + 1);
+					//handler.setLastPacketSent(last + 1);
 					handler.setPacketsPending(handler.getPacketsPending() + 1);
 				}
 
