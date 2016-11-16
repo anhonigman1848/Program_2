@@ -12,60 +12,54 @@ public class ServerPacketHandler {
 	private byte[] buffer;
 
 	// store name of file to write
-	private String file_name;
+	private String fileName;
 
 	// store length of file to write
-	private int file_length;
+	private int fileLength;
 
 	// keep track of how many bytes are in buffer
-	private int bytes_stored;
-
-	// store sent packets in Packet array
-	// this isn't used now; may be needed for Program 3 iteration
-	private Packet[] window;
+	private int bytesStored;
 
 	// Server needs to know seqno of last good packet
 	private int lastPacketReceived;
 
 	// packet size, should be the same for all classes
-	private int packet_size;
+	private int packetSize;
 
 	// probability that cksum of any Packet will be corrupted
-	private double corruption_prob;
+	private double corruptionProb;
 
 	// probability that a Packet will fail on sending
-	private double failure_prob;
+	private double failureProb;
 
 	/**
 	 * Constructor
-	 * @param packet_size
-	 * @param failure_prob
-	 * @param corruption_prob
+	 * @param packetSize
+	 * @param failureProb
+	 * @param corruptionProb
 	 * @param udpServer
 	 */
-	public ServerPacketHandler(int packet_size, double failure_prob, double corruption_prob, UDPServer udpServer) {
+	public ServerPacketHandler(int packetSize, double failureProb, double corruptionProb, UDPServer udpServer) {
 
-		this.packet_size = packet_size;
+		this.packetSize = packetSize;
 
-		this.corruption_prob = corruption_prob;
+		this.corruptionProb = corruptionProb;
 
-		this.failure_prob = failure_prob;
-
-		this.window = new Packet[1];
+		this.failureProb = failureProb;
 
 		this.lastPacketReceived = -1;
 
 		this.udpServer = udpServer;
 
-		this.bytes_stored = 0;
+		this.bytesStored = 0;
 
 	}
 
 	/**
-	 * @return packet_size
+	 * @return packetSize
 	 */
 	public int getPacketSize() {
-		return (packet_size);
+		return (packetSize);
 	}
 
 	/**
@@ -84,11 +78,24 @@ public class ServerPacketHandler {
 
 
 	/**
+	 * Check for corruption of ack Packet
+	 * @return boolean
+	 */
+	public boolean corruptionCheck() {
+		if (Math.random() < corruptionProb) {
+			return (true);
+		} else {
+			return (false);
+		}
+
+	}
+
+	/**
 	 * Check for failure to send ack Packet
 	 * @return boolean
 	 */
 	public boolean failureCheck() {
-		if (Math.random() < failure_prob) {
+		if (Math.random() < failureProb) {
 			return (true);
 		} else {
 			return (false);
@@ -106,25 +113,25 @@ public class ServerPacketHandler {
 	/**
 	 * @param packet
 	 */
-	public void setFile_name(Packet packet) {
+	public void setFileName(Packet packet) {
 
 		setLastPacketReceived(packet.getSeqno());
 		byte[] name_in_bytes = packet.getData();
 		String name = new String(name_in_bytes);
-		this.file_name = "COPY_OF_" + name;
+		this.fileName = "COPY_OF_" + name;
 
 	}
 
 	/**
 	 * @param length
 	 */
-	public void setFile_length(int length) {
-		this.file_length = length;
-		buffer = new byte[file_length];
+	public void setFileLength(int length) {
+		this.fileLength = length;
+		buffer = new byte[fileLength];
 	}
 	
-	public int getFile_length() {
-		return (file_length);
+	public int getFileLength() {
+		return (fileLength);
 	}
 
 	/**
@@ -137,8 +144,8 @@ public class ServerPacketHandler {
 
 			setLastPacketReceived(packet.getSeqno());
 			byte[] data = packet.getData();
-			System.arraycopy(data, 0, buffer, bytes_stored, data.length);
-			bytes_stored += data.length;
+			System.arraycopy(data, 0, buffer, bytesStored, data.length);
+			bytesStored += data.length;
 
 		}
 
@@ -150,7 +157,7 @@ public class ServerPacketHandler {
 	public void outputFile() {
 		
 		try {
-			File file = new File(file_name);
+			File file = new File(fileName);
 			if (!file.exists()){
 				file.createNewFile();
 			}
@@ -207,8 +214,8 @@ public class ServerPacketHandler {
 	/**
 	 * @return bytes_stored
 	 */
-	public int getBytes_stored() {
-		return bytes_stored;
+	public int getBytesStored() {
+		return bytesStored;
 	}
 
 
@@ -304,8 +311,8 @@ public class ServerPacketHandler {
 	// toString method, for testing
 	@Override
 	public String toString() {
-		return "ServerPacketHandler [packet_size=" + packet_size + ", corruption_prob=" + corruption_prob
-				+ ", failure_prob=" + failure_prob + "]";
+		return "ServerPacketHandler [packet size=" + packetSize + ", corruption prob=" + corruptionProb
+				+ ", failure prob=" + failureProb + "]";
 	}
 
 }

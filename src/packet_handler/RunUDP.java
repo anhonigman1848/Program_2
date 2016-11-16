@@ -12,15 +12,15 @@ public class RunUDP {
 
 	private final static int PORT = 7;
 
-	private int packet_size;
+	private int packetSize;
 
-	private int timeout_interval;
+	private int timeoutInterval;
 
-	private double corruption_prob;
+	private double corruptionProb;
 
-	private double failure_prob;
+	private double failureProb;
 
-	private int window_size;
+	private int windowSize;
 
 	private UDPClient udpClient;
 
@@ -48,69 +48,69 @@ public class RunUDP {
 
 	/**
 	 * Set the Checksum corruption, by user input
-	 * @param corruption_prob
+	 * @param corruptionProb
 	 */
-	public void setCorruption_prob(double corruption_prob) {
+	public void setCorruptionProb(double corruptionProb) {
 
-		this.corruption_prob = corruption_prob;
-		this.udpClient.setCorruption_prob(corruption_prob);
-		this.udpServer.setCorruption_prob(corruption_prob);
+		this.corruptionProb = corruptionProb;
+		this.udpClient.setCorruptionProb(corruptionProb);
+		this.udpServer.setCorruptionProb(corruptionProb);
 	}
 
 	/**
 	 * Set Packet failure, by user input
-	 * @param failure_prob
+	 * @param failureProb
 	 */
-	public void setFailure_prob(double failure_prob) {
+	public void setFailureProb(double failureProb) {
 
-		this.failure_prob = failure_prob;
-		this.udpClient.setFailure_prob(failure_prob);
-		this.udpServer.setFailure_prob(failure_prob);
+		this.failureProb = failureProb;
+		this.udpClient.setFailureProb(failureProb);
+		this.udpServer.setFailureProb(failureProb);
 	}
 
 	/**
 	 * Set Packet size, by user input
-	 * @param packet_size
+	 * @param packetSize
 	 */
-	public void setPacket_size(int packet_size) {
-		this.packet_size = packet_size;
-		this.udpClient.setPacket_size(packet_size);
-		this.udpServer.setPacket_size(packet_size);
+	public void setPacketSize(int packetSize) {
+		this.packetSize = packetSize;
+		this.udpClient.setPacketSize(packetSize);
+		this.udpServer.setPacketSize(packetSize);
 	}
 
 	/**
 	 * Set Client timeout, by user input
-	 * @param timeout_interval
+	 * @param timeoutInterval
 	 */
-	public void setTimeout_interval(int timeout_interval) {
-		this.timeout_interval = timeout_interval;
-		this.udpClient.setTimeout_interval(timeout_interval);
-		this.udpServer.setTimeout_interval(timeout_interval);
+	public void setTimeoutInterval(int timeoutInterval) {
+		this.timeoutInterval = timeoutInterval;
+		this.udpClient.setTimeoutInterval(timeoutInterval);
+		this.udpServer.setTimeoutInterval(timeoutInterval);
 	}
 
-	private void setWindow_size(int window_size) {
-		//System.out.println("RunUDP: Setting window_size to: " + window_size);
+	private void setWindowSize(int windowSize) {
 
-		this.window_size = window_size;
-		this.udpClient.setWindow_size(window_size);
+		this.windowSize = windowSize;
+		this.udpClient.setWindowSize(windowSize);
 		
 		
 	}
 	
 	/**
 	 * Set initial Parameters, by user input
-	 * @param failure_prob
-	 * @param corruption_prob
-	 * @param packet_size
-	 * @param timeout_interval
+	 * @param failureProb
+	 * @param corruptionProb
+	 * @param packetSize
+	 * @param timeoutInterval
 	 */
-	public void setParameters(double failure_prob, double corruption_prob, int packet_size, int timeout_interval, int window_size) {
+	public void setParameters(double failureProb, double corruptionProb, int packetSize, int timeoutInterval, int windowSize) {
+		
 
-		this.setPacket_size(packet_size);
-		this.setTimeout_interval(timeout_interval);
-		this.setCorruption_prob(corruption_prob);
-		this.setFailure_prob(failure_prob);
-		this.setWindow_size(window_size);
+		this.setPacketSize(packetSize);
+		this.setTimeoutInterval(timeoutInterval);
+		this.setCorruptionProb(corruptionProb);
+		this.setFailureProb(failureProb);
+		this.setWindowSize(windowSize);
 
 		Thread t = new Thread(udpServer);
 		t.start();
@@ -119,31 +119,31 @@ public class RunUDP {
 
 
 	/**
-	 * @return packet_size
+	 * @return packetSize
 	 */
-	public int getPacket_size() {
-		return packet_size;
+	public int getPacketSize() {
+		return packetSize;
 	}
 
 	/**
-	 * @return timeout_interval
+	 * @return timeoutInterval
 	 */
-	public int getTimeout_interval() {
-		return timeout_interval;
+	public int getTimeoutInterval() {
+		return timeoutInterval;
 	}
 
 	/**
-	 * @return corruption_prob
+	 * @return corruptionProb
 	 */
-	public double getCorruption_prob() {
-		return corruption_prob;
+	public double getCorruptionProb() {
+		return corruptionProb;
 	}
 
 	/**
-	 * @return failure_prob
+	 * @return failureProb
 	 */
-	public double getFailure_prob() {
-		return failure_prob;
+	public double getFailureProb() {
+		return failureProb;
 	}
 
 	

@@ -6,17 +6,17 @@ import java.util.Observable;
 
 public class UDPServer extends Observable implements Runnable {
 
-	static ServerGui serverGui;
+	ServerGui serverGui;
 
-	private int packet_size;
+	private int packetSize;
 
-	private int timeout_interval;
+	private int timeoutInterval;
 
 	private final int port;
 
-	private double failure_prob;
+	private double failureProb;
 
-	private double corruption_prob;
+	private double corruptionProb;
 
 	private boolean firstPacketReceived = false;
 	
@@ -43,11 +43,11 @@ public class UDPServer extends Observable implements Runnable {
 	@Override
 	public void run() {
 
-		byte[] buffer = new byte[packet_size + 12];
+		byte[] buffer = new byte[packetSize + 12];
 
 		try (DatagramSocket socket = new DatagramSocket(port)) {
 
-			server_handler = new ServerPacketHandler(packet_size, failure_prob, corruption_prob, this);
+			server_handler = new ServerPacketHandler(packetSize, failureProb, corruptionProb, this);
 
 			while (true) {
 				if (isShutDown) {
@@ -97,14 +97,6 @@ public class UDPServer extends Observable implements Runnable {
 		// convert DatagramPacket to Packet
 		Packet received = server_handler.dgpacketToPacket(dgpacket);
 
-		/* try {
-			Thread.sleep(timeout_interval / 3);
-		}
-
-		catch (InterruptedException ex) {
-			System.out.println(ex);
-		} */
-
 		// check for corrupted packet
 		if (received.getCksum() == 1) {
 			setOutputMessage("Server received and discarded corrupted packet " + received.getSeqno());
@@ -116,51 +108,49 @@ public class UDPServer extends Observable implements Runnable {
 			if (!firstPacketReceived) {
 				byte[] name_in_bytes = received.getData();
 				String name = new String(name_in_bytes);
-				server_handler.setFile_name(received);
+				server_handler.setFileName(received);
 				int length = received.getAckno();
-				server_handler.setFile_length(length);
+				server_handler.setFileLength(length);
 				setOutputMessage("Server received packet 0 of " + name);
 				firstPacketReceived = true;
 			} else {
-				setOutputMessage("Server received duplicate packet 0");				
-				return;
+				setOutputMessage("Server received and discarded duplicate packet 0");				
 			}
 
 		}
 
 		// check for packet received out of sequence
 		else if (received.getSeqno() > server_handler.getLastPacketReceived() + 1) {
-			setOutputMessage("Server received out-of-sequence packet no " + received.getSeqno());
+			setOutputMessage(
+					"Server received and discarded out-of-sequence packet no " + received.getSeqno());
 			return;
 		}
 
 		// check for end of file packet
 		else if (received.getSeqno() < 0) {
 			if (!endOfFileReceived) {
-				if (server_handler.getBytes_stored() < server_handler.getFile_length()) {
+				if (server_handler.getBytesStored() < server_handler.getFileLength()) {
 					setOutputMessage("Server received out-of-sequence EOF");
 					return;
 				}
 				server_handler.outputFile();
 				setOutputMessage("Server received end of file");
 			} else {
-				setOutputMessage("Server received duplicate EOF");
+				setOutputMessage("Server received and discarded duplicate EOF");
 			}
 		}
 		
+		// check for dupicate packet
+		else if (received.getSeqno() <= server_handler.getLastPacketReceived()) {
+			setOutputMessage(
+					"Server received and discarded duplicate packet no " + received.getSeqno());
+		}
+
 		// this is a good packet and not end of file
 		else {
 			setOutputMessage("Server received packet no " + received.getSeqno());
 			server_handler.addToBuffer(received);
 		}
-
-/*		try {
-			Thread.sleep(timeout_interval / 3);
-		}
-
-		catch (InterruptedException ex) {
-			System.out.println(ex);
-		} */
 
 		// sending ack
 		// if the received packet was corrupted, don't send ack
@@ -173,15 +163,24 @@ public class UDPServer extends Observable implements Runnable {
 			}
 			Packet ackpacket = new Packet((short) 0, ackno);
 
+			// check for corrupted ack
+			if (server_handler.corruptionCheck()) {
+				setOutputMessage("Corrupted acknowledgement for packet " + (ackno - 1));
+				ackpacket.setCksum((short) 1);
+			}
+
 			// check for failure to send ack
 			if (server_handler.failureCheck()) {
-				setOutputMessage("Server failed to send ack " + ackno);
+				setOutputMessage(
+						"Server failed to send acknowledgement for packet " + (ackno - 1));
 			}
 
 			else {
 				DatagramPacket outgoing = server_handler.packetToDGPacket(ackpacket, dgpacket.getAddress(),
 						dgpacket.getPort());
-				setOutputMessage("Server sending ack no " + ackno);
+				setOutputMessage(""
+						+ "Server sending acknowledgement for packet " + (ackno - 1) + 
+						"; ready for packet " + ackno);
 				socket.send(outgoing);
 			}
 		}
@@ -207,59 +206,59 @@ public class UDPServer extends Observable implements Runnable {
 	}
 
 	/**
-	 * @return corruption_prob
+	 * @return corruptionProb
 	 */
-	public double getCorruption_prob() {
-		return corruption_prob;
+	public double getCorruptionProb() {
+		return corruptionProb;
 	}
 
 	/**
-	 * @param corruption_prob
+	 * @param corruptionProb
 	 */
-	public void setCorruption_prob(double corruption_prob) {
-		this.corruption_prob = corruption_prob;
+	public void setCorruptionProb(double corruptionProb) {
+		this.corruptionProb = corruptionProb;
 	}
 
 	/**
-	 * @return failure_prob
+	 * @return failureProb
 	 */
-	public double getFailure_prob() {
-		return failure_prob;
+	public double getFailureProb() {
+		return failureProb;
 	}
 
 	/**
-	 * @param failure_prob
+	 * @param failureProb
 	 */
-	public void setFailure_prob(double failure_prob) {
-		this.failure_prob = failure_prob;
+	public void setFailureProb(double failureProb) {
+		this.failureProb = failureProb;
 	}
 
 	/**
-	 * @return packet_size
+	 * @return packetSize
 	 */
-	public int getPacket_size() {
-		return packet_size;
+	public int getPacketSize() {
+		return packetSize;
 	}
 
 	/**
-	 * @param packet_size
+	 * @param packetSize
 	 */
-	public void setPacket_size(int packet_size) {
-		this.packet_size = packet_size;
+	public void setPacketSize(int packetSize) {
+		this.packetSize = packetSize;
 	}
 
 	/**
-	 * @return timeout_interval
+	 * @return timeoutInterval
 	 */
-	public int getTimeout_interval() {
-		return timeout_interval;
+	public int getTimeoutInterval() {
+		return timeoutInterval;
 	}
 
 	/**
-	 * @param timeout_interval
+	 * @param timeoutInterval
 	 */
-	public void setTimeout_interval(int timeout_interval) {
-		this.timeout_interval = timeout_interval;
+	public void setTimeoutInterval(int timeoutInterval) {
+		this.timeoutInterval = timeoutInterval;
 	}
 
 }

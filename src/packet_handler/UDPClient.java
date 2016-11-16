@@ -14,15 +14,15 @@ public class UDPClient extends Observable implements Runnable {
 
 	private final static int PORT = 7;
 
-	private int packet_size;
+	private int packetSize;
 
-	private int timeout_interval;
+	private int timeoutInterval;
 
-	private double corruption_prob;
+	private double corruptionProb;
 
-	private double failure_prob;
+	private double failureProb;
 	
-	private int window_size;
+	private int windowSize;
 	
 	
 	private SenderThread sender;
@@ -40,7 +40,7 @@ public class UDPClient extends Observable implements Runnable {
 
 			DatagramSocket socket = new DatagramSocket();
 
-			ClientPacketHandler client_handler = new ClientPacketHandler(packet_size, window_size, corruption_prob, failure_prob,
+			ClientPacketHandler client_handler = new ClientPacketHandler(packetSize, windowSize, corruptionProb, failureProb,
 					this);
 
 			sender = new SenderThread(socket, ia, PORT, client_handler, this);
@@ -70,57 +70,57 @@ public class UDPClient extends Observable implements Runnable {
 	/**
 	 * @return packet_size
 	 */
-	public int getPacket_size() {
-		return packet_size;
+	public int getPacketSize() {
+		return packetSize;
 	}
 
 	/**
-	 * @param packet_size
+	 * @param packetSize
 	 */
-	public void setPacket_size(int packet_size) {
-		this.packet_size = packet_size;
+	public void setPacketSize(int packetSize) {
+		this.packetSize = packetSize;
 	}
 
 	/**
-	 * @return timeout_interval
+	 * @return timeoutInterval
 	 */
-	public int getTimeout_interval() {
-		return timeout_interval;
+	public int getTimeoutInterval() {
+		return timeoutInterval;
 	}
 
 	/**
-	 * @param timeout_interval
+	 * @param timeoutInterval
 	 */
-	public void setTimeout_interval(int timeout_interval) {
-		this.timeout_interval = timeout_interval;
+	public void setTimeoutInterval(int timeoutInterval) {
+		this.timeoutInterval = timeoutInterval;
 	}
 
 	/**
-	 * @return corruption_prob
+	 * @return corruptionProb
 	 */
-	public double getCorruption_prob() {
-		return corruption_prob;
+	public double getCorruptionProb() {
+		return corruptionProb;
 	}
 
 	/**
-	 * @param corruption_prob
+	 * @param corruptionProb
 	 */
-	public void setCorruption_prob(double corruption_prob) {
-		this.corruption_prob = corruption_prob;
+	public void setCorruptionProb(double corruptionProb) {
+		this.corruptionProb = corruptionProb;
 	}
 
 	/**
-	 * @return failure_prob
+	 * @return failureProb
 	 */
-	public double getFailure_prob() {
-		return failure_prob;
+	public double getFailureProb() {
+		return failureProb;
 	}
 
 	/**
-	 * @param failure_prob
+	 * @param failureProb
 	 */
-	public void setFailure_prob(double failure_prob) {
-		this.failure_prob = failure_prob;
+	public void setFailureProb(double failureProb) {
+		this.failureProb = failureProb;
 	}
 
 	/**
@@ -159,13 +159,12 @@ public class UDPClient extends Observable implements Runnable {
 		this.sender.halt();
 	}
 
-	public int getWindow_size() {
-		return window_size;
+	public int getWindowSize() {
+		return windowSize;
 	}
 
-	public void setWindow_size(int window_size) {
-		//System.out.println("UDPClient: Setting window_size to: " + window_size);
-		this.window_size = window_size;
+	public void setWindowSize(int windowSize) {
+		this.windowSize = windowSize;
 	}
 
 

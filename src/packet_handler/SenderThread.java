@@ -3,7 +3,6 @@ package packet_handler;
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
-import java.util.Timer;
 import java.util.TimerTask;
 
 class SenderThread extends Thread {
@@ -16,10 +15,8 @@ class SenderThread extends Thread {
 
 	private int port;
 	
-	private int timeout_interval;
+	private int timeoutInterval;
 	
-	private Timer timer;
-
 	private ClientPacketHandler handler;
 
 	private volatile boolean stopped = false;
@@ -39,7 +36,7 @@ class SenderThread extends Thread {
 		
 		this.udpClient = udpClient;
 		
-		this.timeout_interval = udpClient.getTimeout_interval();
+		this.timeoutInterval = udpClient.getTimeoutInterval();
 
 	}
 
@@ -54,6 +51,12 @@ class SenderThread extends Thread {
 	
 	public void sendPacket(int seqno) {
 		Packet next = handler.getPacket(seqno);
+		
+		// check for corrupted packet
+		if (handler.corruptionCheck(seqno)) {
+			next.setCksum((short) 1);
+		}
+		
 		DatagramPacket output = handler.packetToDGPacket(next, server,
 				port);
 
@@ -76,11 +79,11 @@ class SenderThread extends Thread {
 			handler.stopTimer(seqno);
 		} 
 		handler.startTimer(seqno);
-		handler.timers[seqno].schedule(new SendTask(seqno), timeout_interval);
+		handler.timers[seqno].schedule(new SendTask(seqno), timeoutInterval);
 
 		try {
 
-			Thread.sleep(timeout_interval / 2);
+			Thread.sleep(timeoutInterval / 3);
 
 		}
 
@@ -127,13 +130,12 @@ class SenderThread extends Thread {
 				if (stopped)
 					return;
 
-				while (handler.getPacketsPending() < handler.getWindow_size() &
+				while (handler.getPacketsPending() < handler.getWindowSize() &&
 						handler.getLastPacketSent() < handler.getBufferSize() - 1) {
 					int last = handler.getLastPacketSent();
 					sendPacket(last + 1);
 					handler.setLastPacketSent(last + 1);
 					handler.setPacketsPending(handler.getPacketsPending() + 1);
-					udpClient.setOutputMessage(handler.getPacketsPending() + " Packets pending");
 				}
 
 				Thread.yield();

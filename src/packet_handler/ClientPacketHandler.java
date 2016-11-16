@@ -2,9 +2,7 @@ package packet_handler;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.Date;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.nio.ByteBuffer;
@@ -17,14 +15,11 @@ public class ClientPacketHandler {
 	// store packets in BlockingQueue for Thread support
 	private BlockingQueue<Packet> buffer;
 	
-	// keep track of original size of buffer
-	private int bufferStartSize;
-
 	// keep track of how many bytes sent
-	private int bytes_sent;
+	private int bytesSent;
 	
 	//Size of the sliding window
-	private int window_size;
+	private int windowSize;
 	
 	// store packets in Packet array
 	private Packet[] window;
@@ -40,32 +35,31 @@ public class ClientPacketHandler {
 	// number of packets sent and unacked
 	private volatile int packetsPending;
 
-	private int packet_size;
+	private int packetSize;
 
 	// probability that cksum of any Packet will be corrupted
-	private double corruption_prob;
+	private double corruptionProb;
 
 	// probability that a Packet will fail on sending
-	private double failure_prob;
+	private double failureProb;
 
 
 	/**
 	 * Constructor
-	 * @param packet_size
-	 * @param corruption_prob
-	 * @param failure_prob
+	 * @param packetSize
+	 * @param corruptionProb
+	 * @param failureProb
 	 * @param udpClient
 	 */
-	public ClientPacketHandler(int packet_size, int window_size, double corruption_prob, double failure_prob, UDPClient udpClient) {
+	public ClientPacketHandler(int packetSize, int windowSize, double corruptionProb, double failureProb, UDPClient udpClient) {
 
-		this.packet_size = packet_size;
+		this.packetSize = packetSize;
 		
-		//System.out.println("ClientPacketHandler: Setting window_size to: " + window_size);
-		this.window_size = window_size;
+		this.windowSize = windowSize;
 
-		this.corruption_prob = corruption_prob;
+		this.corruptionProb = corruptionProb;
 
-		this.failure_prob = failure_prob;
+		this.failureProb = failureProb;
 
 		this.lastAckReceived = 0;
 		
@@ -75,25 +69,25 @@ public class ClientPacketHandler {
 
 		this.udpClient = udpClient;
 
-		this.bytes_sent = 0;
+		this.bytesSent = 0;
 
 	}
 
 	/**
-	 * @return packet_size
+	 * @return packetSize
 	 */
 	public int getPacketSize() {
 
-		return (packet_size);
+		return (packetSize);
 
 	}
 
 	/**
-	 * @return bytes_sent
+	 * @return bytesSent
 	 */
 	public int getBytesSent() {
 
-		return (bytes_sent);
+		return (bytesSent);
 
 	}
 
@@ -146,12 +140,34 @@ public class ClientPacketHandler {
 		this.packetsPending = packetsPending;
 	}
 
-	public synchronized int getWindow_size() {
-		return window_size;
+	public synchronized int getWindowSize() {
+		return windowSize;
 	}
 	
 	public Packet getPacket(int seqno) {
 		return (window[seqno]);
+	}
+
+	/**
+	 * Method to simulate packet corruption
+	 * @return boolean
+	 */
+	public boolean corruptionCheck(int seqno) {
+
+		if (Math.random() < corruptionProb) {
+
+			udpClient.setOutputMessage("Corrupted packet " + seqno);
+
+			return (true);
+
+		}
+
+		else {
+
+			return (false);
+
+		}
+
 	}
 
 	/**
@@ -160,7 +176,7 @@ public class ClientPacketHandler {
 	 */
 	public boolean failureCheck(int seqno) {
 
-		if (Math.random() < failure_prob) {
+		if (Math.random() < failureProb) {
 
 			udpClient.setOutputMessage("Failed to send packet no " + seqno);
 
@@ -220,7 +236,7 @@ public class ClientPacketHandler {
 
 		int seqno = 1;
 
-		int queue_size = data.length / packet_size + 3;
+		int queue_size = data.length / packetSize + 3;
 
 		buffer = new ArrayBlockingQueue<Packet>(queue_size);
 		
@@ -234,13 +250,13 @@ public class ClientPacketHandler {
 
 		try {
 
-			for (int i = 0; i < data.length; i += packet_size) {
+			for (int i = 0; i < data.length; i += packetSize) {
 
-				int current_size = packet_size;
+				int current_size = packetSize;
 
-				if (data.length - i < packet_size) {
+				if (data.length - i < packetSize) {
 
-					current_size = data.length % packet_size;
+					current_size = data.length % packetSize;
 
 				}
 
@@ -264,9 +280,6 @@ public class ClientPacketHandler {
 
 			buffer.put(last_packet);
 			
-			// record original size of buffer
-			bufferStartSize = buffer.size();
-			
 			window = buffer.toArray(new Packet[0]);
 			
 		} catch (Exception ex) {
@@ -286,46 +299,6 @@ public class ClientPacketHandler {
 
 	}
 	
-	// increment through window - go back to 0 when you reach the end
-	public int circularIncrement(int start, int increment) {
-		
-		if ((start + increment) < window_size) {
-			return (start + increment);
-		} else {
-			return (start + increment - window_size);
-		}
-		
-	}
-
-	/**
-	 * @return nextPacket Sequence number
-	 */
-	public int getNextPacketSeqno() {
-
-		try {
-
-			Packet nextPacket = buffer.peek();
-
-			if (nextPacket == null) {
-
-				return (0);
-
-			}
-
-			return (nextPacket.getSeqno());
-
-		}
-
-		catch (Exception ex) {
-
-			System.out.println("Error in getNextPacketSeqno " + ex);
-
-			return (0);
-
-		}
-
-	}
-
 	/**
 	 * Converts Packet to Datagram Packet
 	 * @param newPacket
@@ -395,8 +368,8 @@ public class ClientPacketHandler {
 
 	@Override
 	public String toString() {
-		return "ClientPacketHandler [packet_size=" + packet_size + ", corruption_prob=" + corruption_prob
-				+ ", failure_prob=" + failure_prob + "]";
+		return "ClientPacketHandler [packet size=" + packetSize + ", corruption prob=" + corruptionProb
+				+ ", failure prob=" + failureProb + "]";
 	}
 
 	/**
