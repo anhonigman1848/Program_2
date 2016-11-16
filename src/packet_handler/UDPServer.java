@@ -151,6 +151,12 @@ public class UDPServer extends Observable implements Runnable {
 			setOutputMessage("Server received packet no " + received.getSeqno());
 			server_handler.addToBuffer(received);
 		}
+		try {
+			Thread.sleep(timeoutInterval / 3);
+		}
+		catch (InterruptedException ex) {
+			System.out.println(ex);
+		}
 
 		// sending ack
 		// if the received packet was corrupted, don't send ack

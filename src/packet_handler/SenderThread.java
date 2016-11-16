@@ -95,15 +95,10 @@ class SenderThread extends Thread {
 		}
 
 		try {
-
 			Thread.sleep(timeoutInterval / 3);
-
 		}
-		
 		catch (InterruptedException ex) {
-
 			System.out.println(ex);
-
 		}
 
 	}
@@ -119,16 +114,6 @@ class SenderThread extends Thread {
 		}
 	}
 	
-	public synchronized void resetWindow(int seqno) {
-		// stop all timers
-		for (int i = 0; i < handler.getBufferSize(); i++) {
-			handler.stopTimer(i);
-		}
-		// make window start over
-		handler.setLastPacketSent(seqno - 1);
-		handler.setPacketsPending(0);
-	}
-
 	@Override
 	public void run() {
 
