@@ -55,6 +55,8 @@ class SenderThread extends Thread {
 		// check for corrupted packet
 		if (handler.corruptionCheck(seqno)) {
 			next.setCksum((short) 1);
+		} else {
+			next.setCksum((short) 0);
 		}
 		
 		DatagramPacket output = handler.packetToDGPacket(next, server,

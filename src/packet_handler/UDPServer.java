@@ -140,7 +140,7 @@ public class UDPServer extends Observable implements Runnable {
 			}
 		}
 		
-		// check for dupicate packet
+		// check for duplicate packet
 		else if (received.getSeqno() <= server_handler.getLastPacketReceived()) {
 			setOutputMessage(
 					"Server received and discarded duplicate packet no " + received.getSeqno());
